@@ -84,12 +84,12 @@ class Logger:
 					"message": msg_to_store
 				})
 
+		logstr = "{} {}/{}{} {}".format(str(datetime.now()), pre, tag, " " * (10-len(tag)), message)
+		
 		if self.to_console:
 			print(logstr)
 		if not self.on:
 			return
-		
-		logstr = "{} {}/{}{} {}".format(str(datetime.now()), pre, tag, " " * (10-len(tag)), message)
 
 		with open(self.logfile, "a+") as f:
 			f.write(logstr + "\n")
