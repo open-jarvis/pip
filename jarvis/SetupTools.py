@@ -17,8 +17,10 @@ class SetupTools:
 			print(on_fail)
 			if exit_on_fail:
 				exit(1)
+			return False
 		else:
 			print(on_success)
+			return True
 
 	@staticmethod
 	def regex_replace_in_file(file_path, from_regex, to_string):
