@@ -4,6 +4,7 @@ This package contains helper classes for [open-jarvis](https://github.com/open-j
 ## Classes
 - [Colors](#colors)
 - [Config](#config)
+- [Exiter](#exiter)
 - [Jarvis](#jarvis)
 - [Logger](#logger)
 - [MQTT](#mqtt)
@@ -37,6 +38,16 @@ Config(user, filename="main.conf") # initialize the configuration in /home/{user
 	.get() # get entire configuration
 	.get_key(key) # get key from configuration
 	.set_key(key, value) # set a key in configuration
+```
+
+
+### Exiter  
+```python
+def on_exit(args):
+	print("exiting... perform actions here!")
+
+Exiter(on_exit, [args, ...]) 	# initializes an Exiter who executes the given function
+								# when the script receives a SIGTERM or SIGINT signal
 ```
 
 
