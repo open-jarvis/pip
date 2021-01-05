@@ -3,7 +3,7 @@
 #
 
 from datetime import datetime
-import os, zipfile, json
+import os, zipfile, json, traceback
 
 #MAX_LOGF_SIZE = 100 * 1024 * 1024		# 100MB
 MAX_LOGF_SIZE = 20 * 1024 * 1024		# 20MB
@@ -44,6 +44,8 @@ class Logger:
 	def c(self, tag, message):
 		self.wr("C", tag, message)
 
+	def exception(self, tag, exception=None):
+		self.e(tag, traceback.format_exc())
 
 	def enable_fast(self):
 		self.fast = True

@@ -55,11 +55,15 @@ Exiter(on_exit, [args, ...]) 	# initializes an Exiter who executes the given fun
 > This class is still in development  
 
 ```python
-Jarvis(host, token, port=2021)
-	.connect(reconnect_on_error=True)
-	.reconnect()
-
-	.set_property(key, value) # TODO
+Jarvis(host="127.0.0.1", port=1883, client_id="mqtt_jarvis")
+	.register()
+	.get_devices()
+	.get_property(key, target_token=None)
+	.set_property(target_token, key, value)
+	.instant_ask(typ, name, infos, options)
+	.instant_answer(target_token, typ, option_index, description)
+	.instant_scan(target_token=None, typ=None)
+	.instant_delete(target_token)
 ```
 
 
