@@ -3,12 +3,13 @@ This package contains helper classes for [open-jarvis](https://github.com/open-j
 
 ## Classes
 - [Colors](#colors)
-- [Config](#config)
 - [Exiter](#exiter)
 - [Jarvis](#jarvis)
 - [Logger](#logger)
 - [MQTT](#mqtt)
 - [SetupTools](#setuptools)
+- [Database](#database)
+- [Config](#config)
 
 
 
@@ -28,19 +29,6 @@ Colors
 	.ERROR	= RED
 ```
 
-
-### Config  
-```python
-Config(user, filename="main.conf") # initialize the configuration in /home/{user}/.config/jarvis/{filename}
-	.exists() # returns true or false if the config file exists
-	.create() # create an empty configuration
-	.create_if_not_exists() # .create() if not .exists()
-	.get() # get entire configuration
-	.get_key(key) # get key from configuration
-	.set_key(key, value) # set a key in configuration
-```
-
-
 ### Exiter  
 ```python
 def on_exit(args):
@@ -52,7 +40,7 @@ Exiter(on_exit, [args, ...]) 	# initializes an Exiter who executes the given fun
 
 
 ### Jarvis  
-> This class is still in development  
+Jarvis MQTT API wrapper
 
 ```python
 Jarvis(host="127.0.0.1", port=1883, client_id="mqtt_jarvis")
@@ -71,10 +59,7 @@ Jarvis(host="127.0.0.1", port=1883, client_id="mqtt_jarvis")
 Provides a uniform interface for logging files
 
 ```python
-Logger(logfile, compressed_folder)
-	.on() # turn on logging
-	.off() # turn off logging
-
+Logger(referer: str) # the referer is a string describing from which program the log message originated (eg. your script name)
 	.console_on() # turn on console logging
 	.console_off() # turn off console logging
 
@@ -89,10 +74,12 @@ Logger(logfile, compressed_folder)
 	.w(tag, message) # create a warning message
 	.s(tag, message) # create a success message
 	.c(tag, message) # create a critical message
+
+	.exception(tag, exception=None) # log the last exception
 ```
 
 
-### MQTT
+### MQTT  
 ```python
 MQTT(host=127.0.0.1, port=1883, client_id=[random])
 	.on_connect(callback[client, userdata, flags, rc]) # on connect event
@@ -102,7 +89,7 @@ MQTT(host=127.0.0.1, port=1883, client_id=[random])
 ```
 
 
-### SetupTools
+### SetupTools  
 ```python
 SetupTools
 	.do_action(print_str, shell_command, show_output=True, on_fail="failed!", on_success="done!", exit_on_fail=True): # run a shell command
@@ -115,5 +102,18 @@ SetupTools
 	.get_default_user(default_user) # ask for the default user, return either default_user or a new username
 ```
 
+### Database  
+```python
+Database
+	.create() -> None # creates the database and tables
+	.get() -> [ r, connection ] # returns a r and connection object
+```
 
+### Config  
+```python
+Config # utilizes the Database class to store configurations.
+       # ONLY STORE INFORMATION, THAT SHOULD BE ACCESSIBLE FOR JARVIS SUBPROGRAMS!
+	.set(key:str, value:object) # set a key and give it a value
+	.get(key:str, or_else:object) # get a key, if not available return the or_else object
+```
 

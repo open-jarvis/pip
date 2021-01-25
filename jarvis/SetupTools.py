@@ -14,12 +14,12 @@ class SetupTools:
 			shell_command += " &> /dev/null"
 
 		if not os.system(shell_command) == 0:
-			print(on_fail)
+			print(f"{Colors.RED}{on_fail}{Colors.END}")
 			if exit_on_fail:
 				exit(1)
 			return False
 		else:
-			print(on_success)
+			print(f"{Colors.GREEN}{on_success}{Colors.END}")
 			return True
 
 	@staticmethod
