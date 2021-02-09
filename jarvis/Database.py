@@ -2,47 +2,57 @@
 # Copyright (c) 2020 by Philipp Scheer. All Rights Reserved.
 #
 
-import time
-import types
-from rethinkdb import RethinkDB
+from typing import Any
+import couchdb2
 
-TABLES = ["config", "devices", "applications", "instants", "tokens", "brain", "logs"]
-DB_NAME = "jarvis"
+TABLES = ["config", "devices", "apps", "instants", "tokens", "brain", "logs"]
+DATABASE = "jarvis"
+
+
+class DatabaseConnection:
+    def __init__(self, username: str, password: str, hostname: str = "127.0.0.1", port: int = 5984) -> None:
+        self.host = hostname
+        self.port = port
+        self.user = username
+
+        self.server = couchdb2.Server(
+            f"http://{self.host}:{self.port}/", username=self.user, password=password)
+
+    def database(self, name: str):
+        return Database(self.server, name)
+
+    def is_up(self):
+        return self.server.up()
 
 
 class Database:
-    @staticmethod
-    def create() -> None:
-        r = RethinkDB()
-        con = r.connect()
-        con.noreply_wait()
+    def __init__(self, server: couchdb2.Server, name: str) -> None:
+        self.server = server
+        self.name = name
 
-        r.db_list().contains(DB_NAME).do(lambda x:
-                                         r.branch(
-                                             x,
-                                             {"dbs_created": 0},
-                                             r.db_create(DB_NAME)
-                                         )).run(con)
+    def table(self, name: str):
+        # A database is also a table in couchdb, so we make a trick:
+        #   prefix all tables with a given database name
+        return Table(self.server, f"{self.name}-{name}")
 
-        con.use(DB_NAME)
 
-        [r.table_list().contains(tbl).do(lambda x:
-                                         r.branch(
-                                             x,
-                                             {"dbs_created": 0},
-                                             r.table_create(tbl)
-                                         )).run(con) and time.sleep(1) and print(f"created table {DB_NAME}.'{con}'") for tbl in TABLES]
+class Table:
+    def __init__(self, server: couchdb2.Server, name: str) -> None:
+        self.server = server
+        self.name = name
+        if self.name in self.server:
+            self.table = self.server.get(name)
+        else:
+            self.table = self.server.create(name)
 
-    @staticmethod
-    def get() -> list:
-        r = RethinkDB()
-        con = r.connect(db="jarvis")
-        con.check_open(types.MethodType(Database.auto_reconnect, con))
-        con.noreply_wait()
-        return [r, con]
-    
-    @staticmethod
-    def auto_reconnect(self):
-        if self._instance is None or not self._instance.is_open():
-            self.reconnect()
+    def get(self, id: str) -> dict:
+        return self.table.get(id)
 
+    def get_all(self) -> list:
+        all = []
+        for doc in self.table:
+            all.append(doc)
+        return all
+
+    def insert(self, document: dict) -> any:
+        return self.table.put(document)

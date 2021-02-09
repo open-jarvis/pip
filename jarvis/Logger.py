@@ -14,9 +14,9 @@ MAX_FAST_LENGTH = 1000					# 1000 entries
 
 
 class Logger:
-    def __init__(self, from):
+    def __init__(self, referer):
         self.r, self.con = Database.get()
-        self.from = from
+        self.referer = referer
         self.fast = False
         self.grouping = False
         self.to_cfsole = False
@@ -93,11 +93,11 @@ class Logger:
                 })
 
         if self.to_console:
-            print("{} - {} - {}/{}{} {}".format(str(datetime.now()), self.from + (" " * (15-len(self.from))), pre, tag, " " * (15-len(tag)), message))
+            print("{} - {} - {}/{}{} {}".format(str(datetime.now()), self.referer + (" " * (15-len(self.referer))), pre, tag, " " * (15-len(tag)), message))
 
             self.r.db("jarvis").table("logs").insert({
                 "timestamp": time.time(),
-                "from": self.from,
+                "referer": self.referer,
                 "importance": pre,
                 "tag": tag,
                 "message": message

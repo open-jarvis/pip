@@ -8,18 +8,18 @@ from jarvis import Colors
 class SetupTools:
 	@staticmethod
 	def do_action(print_str, shell_command, show_output=True, on_fail="failed!", on_success="done!", exit_on_fail=True):
-		print(print_str + "... ", end="")
+		print(f" + {shell_command}")
 
 		if not show_output:
 			shell_command += " &> /dev/null"
 
 		if not os.system(shell_command) == 0:
-			print(f"{Colors.RED}{on_fail}{Colors.END}")
+			print(f"{print_str}... {Colors.RED}{on_fail}{Colors.END}")
 			if exit_on_fail:
 				exit(1)
 			return False
 		else:
-			print(f"{Colors.GREEN}{on_success}{Colors.END}")
+			print(f"{print_str}... {Colors.GREEN}{on_success}{Colors.END}")
 			return True
 
 	@staticmethod
