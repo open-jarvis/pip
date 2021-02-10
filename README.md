@@ -104,9 +104,27 @@ SetupTools
 
 ### Database  
 ```python
-Database
-	.create() -> None # creates the database and tables
-	.get() -> [ r, connection ] # returns a r and connection object
+Database(username: str, password: str, name: str, hostname: str = "127.0.0.1", port: int = 5984)
+	.table(name: str, pure: bool = False) -> Table # get a table, create the table if it doesn't exist yet
+	.up # returns True if the server is up and running, else False
+
+Table
+	.get(id: str) # get a document using its id
+	.all() # get all documents
+	.insert(document: dict) # insert a document
+	.filter(filter: lamdba|dict) -> DocumentList # filter all entries either using a lambda function or a dictionary
+	.delete() # drop the table
+
+DocumentList
+	.update(new_document: dict) # update a list of documents
+	.delete() # delete all selected documents
+	.found # check if a previous function returned entries
+
+# Examples:
+#  Find all documents containing a "hello": "world" key-value pair and delete it
+Database("test", "test", "test").table("test").filter({"hello":"world"}).delete()
+#  Find all documents containing a "hello": "world" key-value pair and update it
+Database("test", "test", "test").table("test").filter({"hello":"world"}).update({"hello2":"world2", "this": "is a second key value pair"})
 ```
 
 ### Config  

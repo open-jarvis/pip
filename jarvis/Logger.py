@@ -15,7 +15,7 @@ MAX_FAST_LENGTH = 1000					# 1000 entries
 
 class Logger:
     def __init__(self, referer):
-        self.r, self.con = Database.get()
+        self.db = Database()
         self.referer = referer
         self.fast = False
         self.grouping = False
@@ -95,10 +95,10 @@ class Logger:
         if self.to_console:
             print("{} - {} - {}/{}{} {}".format(str(datetime.now()), self.referer + (" " * (15-len(self.referer))), pre, tag, " " * (15-len(tag)), message))
 
-            self.r.db("jarvis").table("logs").insert({
+            self.db.table("logs").insert({
                 "timestamp": time.time(),
                 "referer": self.referer,
                 "importance": pre,
                 "tag": tag,
                 "message": message
-            }).run(self.con)
+            })
