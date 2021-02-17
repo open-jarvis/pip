@@ -10,7 +10,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="open-jarvis", # Replace with your own username
-    version="0.0.32",
+    version="0.0.34",
     author="Philipp Scheer",
     author_email="scheer28philipp@gmail.com",
     description="Helper classes for Jarvis applications",
