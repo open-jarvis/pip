@@ -18,7 +18,7 @@ class Logger:
         self.referer = referer
         self.fast = False
         self.grouping = False
-        self.to_cfsole = False
+        self.to_console = True
         self.fast_log_data = []
 
     def console_on(self):
@@ -94,7 +94,7 @@ class Logger:
         if self.to_console:
             print("{} - {} - {}/{}{} {}".format(str(datetime.now()), self.referer + (" " * (15-len(self.referer))), pre, tag, " " * (15-len(tag)), message))
 
-            Database().table("logs").insert({
+            Database.Database().table("logs").insert({
                 "timestamp": time.time(),
                 "referer": self.referer,
                 "importance": pre,
