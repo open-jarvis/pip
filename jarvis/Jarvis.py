@@ -29,7 +29,7 @@ class Jarvis:
     def register(self, name: str):
         self.token = "app:" + ''.join(random.choice(string.ascii_lowercase + string.digits)
                                       for _ in range(APPLICATION_TOKEN_LENGTH))
-        return json.loads(self._send_and_receive("jarvis/api/register", {"name": name}))
+        return json.loads(self._send_and_receive("jarvis/api/register-device", {"name": name}))
 
     def get_devices(self):
         return json.loads(self._send_and_receive("jarvis/api/get-devices"))
