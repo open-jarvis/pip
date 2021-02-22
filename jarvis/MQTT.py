@@ -3,6 +3,7 @@
 #
 
 from typing import Callable
+from jarvis import Logger
 import paho.mqtt.client as mqtt
 import random
 import string
@@ -26,7 +27,14 @@ class MQTT():
             self.client_id = str(client_id)
 
         self.client = mqtt.Client(client_id=client_id)
-        self.client.connect(self.host, self.port)
+
+        try:
+            self.client.connect(self.host, self.port)
+        except ConnectionRefusedError:
+            Logger.e1("mqtt", "refused",
+                      "connection refused, mosquitto not installed")
+            exit(1)
+
         self.client.loop_start()
 
     def on_connect(self, fn: Callable):

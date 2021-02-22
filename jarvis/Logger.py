@@ -5,9 +5,7 @@
 import time
 import traceback
 from datetime import datetime
-from jarvis import Database
-
-MAX_LOGF_SIZE = 20 * 1024 * 1024		# 20MB
+# from jarvis import Database
 
 
 class Logger:
@@ -21,36 +19,54 @@ class Logger:
     def console_off(self):
         self.to_console = False
 
-    def new_group(self, data: object):
-        self.grouping = True
+    # def i(self, tag: str, message: str):
+    #     Logger.log(self.referer, "I", tag, message, self.to_console)
 
-    def i(self, tag: str, message: str):
-        self.wr("I", tag, message)
+    # def e(self, tag: str, message: str):
+    #     Logger.log(self.referer, "E", tag, message, self.to_console)
 
-    def e(self, tag: str, message: str):
-        self.wr("E", tag, message)
+    # def w(self, tag: str, message: str):
+    #     Logger.log(self.referer, "W", tag, message, self.to_console)
 
-    def w(self, tag: str, message: str):
-        self.wr("W", tag, message)
+    # def s(self, tag: str, message: str):
+    #     Logger.log(self.referer, "S", tag, message, self.to_console)
 
-    def s(self, tag: str, message: str):
-        self.wr("S", tag, message)
-
-    def c(self, tag: str, message: str):
-        self.wr("C", tag, message)
+    # def c(self, tag: str, message: str):
+    #     Logger.log(self.referer, "C", tag, message, self.to_console)
 
     def exception(self, tag: str, exception: Exception = None):
         self.e(tag, traceback.format_exc())
 
-    def wr(self, pre: str, tag: str, message: object):
-        if self.to_console:
-            print("{} - {} - {}/{}{} {}".format(str(datetime.now()), self.referer +
-                                                (" " * (15-len(self.referer))), pre, tag, " " * (15-len(tag)), message))
+    # @staticmethod
+    # def log(referer: str, pre: str, tag: str, message: object, to_console: bool = True):
+    #     if to_console:
+    #         print("{} - {}/{} - {}".format(str(datetime.now()), pre, referer +
+    #                                        (" " * (12-len(referer))), message))
 
-            Database.Database().table("logs").insert({
-                "timestamp": time.time(),
-                "referer": self.referer,
-                "importance": pre,
-                "tag": tag,
-                "message": message
-            })
+    #         Database.Database().table("logs").insert({
+    #             "timestamp": time.time(),
+    #             "referer": referer,
+    #             "importance": pre,
+    #             "tag": tag,
+    #             "message": message
+    #         })
+
+    # @staticmethod
+    # def i1(referer: str, tag: str, message: object):
+    #     Logger.log(referer, "I", tag, message, True)
+
+    # @staticmethod
+    # def e1(referer: str, tag: str, message: object):
+    #     Logger.log(referer, "E", tag, message, True)
+
+    # @staticmethod
+    # def w1(referer: str, tag: str, message: object):
+    #     Logger.log(referer, "W", tag, message, True)
+
+    # @staticmethod
+    # def s1(referer: str, tag: str, message: object):
+    #     Logger.log(referer, "S", tag, message, True)
+
+    # @staticmethod
+    # def c1(referer: str, tag: str, message: object):
+    #     Logger.log(referer, "C", tag, message, True)

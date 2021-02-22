@@ -11,8 +11,9 @@ class ProcessPool:
         self.processes = []
         self.logging_instance = logging_instance
 
-    def terminate(self, p: multiprocessing.Process, name: str, max_tries: int = 3, time_between_tries: int = 5) -> None:
+    def terminate(self, p: multiprocessing.Process, name: str, max_tries: int = 3, time_between_tries: int = 2) -> None:
         p.terminate()
+        print(p)
         i = 0
         while p.is_alive():
             i += 1

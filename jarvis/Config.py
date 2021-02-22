@@ -5,8 +5,6 @@
 
 from jarvis import Database, Logger
 
-LOGGER = Logger("config")
-
 class Config:
     def __init__(self) -> None:
         self.db = Database.Database()
@@ -24,7 +22,7 @@ class Config:
                 })
             return True
         except Exception as e:
-            LOGGER.e(f"set:{key}", str(e))
+            Logger.e1("config", f"set:{key}", str(e))
             return False
 
     def get(self, key: str, or_else: any = {}) -> object:
@@ -33,5 +31,5 @@ class Config:
                 return self.db.table("config").filter({"key": key})[0]
             return or_else 
         except Exception as e:
-            LOGGER.e(f"get:{key}", str(e))
+            Logger.e1("config", f"get:{key}", str(e))
             return False
