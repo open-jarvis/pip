@@ -5,7 +5,7 @@
 import time
 import traceback
 from datetime import datetime
-# from jarvis import Database
+from jarvis import Database
 
 
 class Logger:
@@ -19,54 +19,68 @@ class Logger:
     def console_off(self):
         self.to_console = False
 
-    # def i(self, tag: str, message: str):
-    #     Logger.log(self.referer, "I", tag, message, self.to_console)
+    def i(self, tag: str, message: str):
+        Logger.log(self.referer, "I", tag, message, to_console=self.to_console)
 
-    # def e(self, tag: str, message: str):
-    #     Logger.log(self.referer, "E", tag, message, self.to_console)
+    def e(self, tag: str, message: str, exception_str: str):
+        Logger.log(self.referer, "E", tag, message,
+                   to_console=self.to_console, exception_str=exception_str)
 
-    # def w(self, tag: str, message: str):
-    #     Logger.log(self.referer, "W", tag, message, self.to_console)
+    def w(self, tag: str, message: str):
+        Logger.log(self.referer, "W", tag, message, to_console=self.to_console)
 
-    # def s(self, tag: str, message: str):
-    #     Logger.log(self.referer, "S", tag, message, self.to_console)
+    def s(self, tag: str, message: str):
+        Logger.log(self.referer, "S", tag, message, to_console=self.to_console)
 
-    # def c(self, tag: str, message: str):
-    #     Logger.log(self.referer, "C", tag, message, self.to_console)
+    def c(self, tag: str, message: str):
+        Logger.log(self.referer, "C", tag, message, to_console=self.to_console)
 
-    def exception(self, tag: str, exception: Exception = None):
-        self.e(tag, traceback.format_exc())
+    @staticmethod
+    def log(referer: str, pre: str, tag: str, message: object, exception_str: str = None, to_console: bool = True, database_entry: bool = True):
+        print(f"Logger::log(to_console={to_console}, database_entry={database_entry})")
+        if to_console:
+            print("{} - {}/{} - {}".format(str(datetime.now()), pre, referer +
+                                           (" " * (12-len(referer))), message))
 
-    # @staticmethod
-    # def log(referer: str, pre: str, tag: str, message: object, to_console: bool = True):
-    #     if to_console:
-    #         print("{} - {}/{} - {}".format(str(datetime.now()), pre, referer +
-    #                                        (" " * (12-len(referer))), message))
+        if database_entry:
+            obj = {
+                "timestamp": time.time(),
+                "referer": referer,
+                "importance": pre,
+                "tag": tag,
+                "message": message
+            }
+            if exception_str is not None:
+                obj["exception"] = exception_str
 
-    #         Database.Database().table("logs").insert({
-    #             "timestamp": time.time(),
-    #             "referer": referer,
-    #             "importance": pre,
-    #             "tag": tag,
-    #             "message": message
-    #         })
+            try:
+                Database.Database().table("logs").insert(obj)
+            except Database.Exception:
+                Logger.e1("logger", "db-error", "failed to insert log data, database not running",
+                          traceback.format_exc(), to_console=True, database_entry=False)
+                exit(1)
 
-    # @staticmethod
-    # def i1(referer: str, tag: str, message: object):
-    #     Logger.log(referer, "I", tag, message, True)
+    @staticmethod
+    def i1(referer: str, tag: str, message: object, database_entry: bool = True):
+        Logger.log(referer, "I", tag, message, to_console=True,
+                   database_entry=database_entry)
 
-    # @staticmethod
-    # def e1(referer: str, tag: str, message: object):
-    #     Logger.log(referer, "E", tag, message, True)
+    @staticmethod
+    def e1(referer: str, tag: str, message: object, exception_str: str, database_entry: bool = True):
+        Logger.log(referer, "E", tag, message, exception_str=exception_str,
+                   to_console=True, database_entry=database_entry)
 
-    # @staticmethod
-    # def w1(referer: str, tag: str, message: object):
-    #     Logger.log(referer, "W", tag, message, True)
+    @staticmethod
+    def w1(referer: str, tag: str, message: object, database_entry: bool = True):
+        Logger.log(referer, "W", tag, message, to_console=True,
+                   database_entry=database_entry)
 
-    # @staticmethod
-    # def s1(referer: str, tag: str, message: object):
-    #     Logger.log(referer, "S", tag, message, True)
+    @staticmethod
+    def s1(referer: str, tag: str, message: object, database_entry: bool = True):
+        Logger.log(referer, "S", tag, message, to_console=True,
+                   database_entry=database_entry)
 
-    # @staticmethod
-    # def c1(referer: str, tag: str, message: object):
-    #     Logger.log(referer, "C", tag, message, True)
+    @staticmethod
+    def c1(referer: str, tag: str, message: object, database_entry: bool = True):
+        Logger.log(referer, "C", tag, message, to_console=True,
+                   database_entry=database_entry)

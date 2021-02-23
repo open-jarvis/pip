@@ -2,20 +2,32 @@
 # Copyright (c) 2020 by Philipp Scheer. All Rights Reserved.
 #
 
+from jarvis import Logger
 import types
 import couchdb2
-from functools import wraps
-
+import requests
+import traceback
 
 class Database:
+    Exception = (requests.ConnectionError)
+
     def __init__(self, username: str = "jarvis", password: str = "jarvis", name: str = "jarvis", hostname: str = "127.0.0.1", port: int = 5984) -> None:
         self.host = hostname
         self.port = port
         self.user = username
         self.name = name
 
-        self.server = couchdb2.Server(
-            f"http://{self.host}:{self.port}/", username=self.user, password=password)
+        print("Database::__init__")
+
+        try:
+            print("Database::try")
+            self.server = couchdb2.Server(
+                f"http://{self.host}:{self.port}/", username=self.user, password=password)
+        except Database.Exception:
+            print("Database::except")
+            Logger.Logger.e1("database", "refused",
+                             "connection refused, database not running", traceback.format_exc(), to_console=False)
+            exit(1)
 
     def table(self, name: str, pure: bool = False):
         # A database is also a table in couchdb, so we make a trick:
@@ -115,7 +127,6 @@ class DocumentList:
 
     def __getitem__(self, key: int):
         return self.document_list[key]
-    
+
     def __list__(self):
         return self.document_list
-
