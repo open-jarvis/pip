@@ -9,7 +9,7 @@ import requests
 import traceback
 
 class Database:
-    Exception = (requests.ConnectionError)
+    Exception = requests.ConnectionError
 
     def __init__(self, username: str = "jarvis", password: str = "jarvis", name: str = "jarvis", hostname: str = "127.0.0.1", port: int = 5984) -> None:
         self.host = hostname
@@ -22,7 +22,7 @@ class Database:
                 f"http://{self.host}:{self.port}/", username=self.user, password=password)
         except Database.Exception:
             Logger.Logger.e1("database", "refused",
-                             "connection refused, database not running", traceback.format_exc(), to_console=False)
+                             "connection refused, database not running", traceback.format_exc(), database_entry=False)
             exit(1)
 
     def table(self, name: str, pure: bool = False):
