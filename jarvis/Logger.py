@@ -54,7 +54,7 @@ class Logger:
 
             try:
                 Database.Database().table("logs").insert(obj)
-            except Database.Exception:
+            except Database.Database.Exception:
                 Logger.e1("logger", "db-error", "failed to insert log data, database not running",
                           traceback.format_exc(), to_console=True, database_entry=False)
                 exit(1)

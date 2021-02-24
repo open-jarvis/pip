@@ -5,7 +5,7 @@ from .Config import *
 from .SetupTools import *
 from .Config import *
 from .Exiter import *
-from .Database import *
 from .Mime import *
 from .ProcessPool import *
 from .Logger import *
+from .Database import *

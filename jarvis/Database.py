@@ -2,11 +2,11 @@
 # Copyright (c) 2020 by Philipp Scheer. All Rights Reserved.
 #
 
-from jarvis import Logger
 import types
 import couchdb2
 import requests
 import traceback
+
 
 class Database:
     Exception = requests.ConnectionError
@@ -21,14 +21,15 @@ class Database:
             self.server = couchdb2.Server(
                 f"http://{self.host}:{self.port}/", username=self.user, password=password)
         except Database.Exception:
+            from jarvis import Logger
             Logger.Logger.e1("database", "refused",
                              "connection refused, database not running", traceback.format_exc(), database_entry=False)
             exit(1)
 
-    def table(self, name: str, pure: bool = False):
+    def table(self, table_name: str, pure: bool = False):
         # A database is also a table in couchdb, so we make a trick:
         #   prefix all tables with a given database name
-        return Table(self.server, name if pure else f"{self.name}-{name}")
+        return Table(self.server, table_name if pure else f"{self.name}-{table_name}")
 
     def delete(self):
         for db in self.server:
@@ -44,13 +45,13 @@ class Database:
 
 
 class Table:
-    def __init__(self, server: couchdb2.Server, name: str) -> None:
+    def __init__(self, server: couchdb2.Server, table_name: str) -> None:
         self.server = server
-        self.name = name
+        self.name = table_name
         if self.name in self.server:
-            self.table = self.server.get(name)
+            self.table = self.server.get(self.name)
         else:
-            self.table = self.server.create(name)
+            self.table = self.server.create(self.name)
 
     def get(self, id: str) -> dict:
         return self.table.get(id)
