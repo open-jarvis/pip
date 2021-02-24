@@ -10,7 +10,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="open-jarvis", # Replace with your own username
-    version="0.0.37",
+    version="0.0.38",
     author="Philipp Scheer",
     author_email="scheer28philipp@gmail.com",
     description="Helper classes for Jarvis applications",
@@ -19,8 +19,8 @@ setuptools.setup(
     url="https://github.com/open-jarvis",
     packages=setuptools.find_packages(),
     install_requires=[
-        "paho.mqtt",
-        "couchdb2"
+        'paho.mqtt; platform_machine == "armv7l"',
+        'couchdb2'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

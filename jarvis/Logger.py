@@ -37,7 +37,6 @@ class Logger:
 
     @staticmethod
     def log(referer: str, pre: str, tag: str, message: object, exception_str: str = None, to_console: bool = True, database_entry: bool = True):
-        print(f"Logger::log(to_console={to_console}, database_entry={database_entry})")
         if to_console:
             print("{} - {}/{} - {}".format(str(datetime.now()), pre, referer +
                                            (" " * (12-len(referer))), message))

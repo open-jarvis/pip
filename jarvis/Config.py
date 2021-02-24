@@ -8,11 +8,9 @@ import traceback
 
 class Config:
     def __init__(self) -> None:
-        print("Config::__init__")
         self.db = Database.Database()
 
     def set(self, key: str, value: object) -> bool:
-        print("Config::set")
         try:
             if self.db.table("config").filter({"key": key}).found:
                 self.db.table("config").filter({"key": key}).update({
@@ -32,7 +30,6 @@ class Config:
             return False
 
     def get(self, key: str, or_else: any = {}) -> object:
-        print("Config::get")
         try:
             if self.db.table("config").filter({"key": key}).found:
                 return self.db.table("config").filter({"key": key})[0]

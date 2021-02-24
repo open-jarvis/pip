@@ -17,14 +17,10 @@ class Database:
         self.user = username
         self.name = name
 
-        print("Database::__init__")
-
         try:
-            print("Database::try")
             self.server = couchdb2.Server(
                 f"http://{self.host}:{self.port}/", username=self.user, password=password)
         except Database.Exception:
-            print("Database::except")
             Logger.Logger.e1("database", "refused",
                              "connection refused, database not running", traceback.format_exc(), to_console=False)
             exit(1)
