@@ -40,8 +40,15 @@ class Database:
         return self.delete()
 
     @property
+    def stats(self):
+        return self.server.get_node_stats(nodename='_local')
+
+    @property
     def up(self):
         return self.server.up()
+
+    def __str__(self) -> str:
+        return f"jarvis.Database.Database({self.name})"
 
 
 class Table:
@@ -84,11 +91,23 @@ class Table:
                         doc_list.add(document)
         return doc_list
 
+    def find(self, filter: dict = {}) -> list:
+        doc_list = DocumentList(self)
+        doc_list.document_list = self.table.find(filter)["docs"]
+        return doc_list
+
     def delete(self, document):
         self.table.purge([document])
 
     def drop(self):
         return self.table.destroy()
+
+    @property
+    def size(self):
+        return dict(self.table.get_info())["sizes"]["active"]
+
+    def __str__(self) -> str:
+        return f"jarvis.Database.Table({self.name})"
 
 
 class DocumentList:
@@ -106,17 +125,36 @@ class DocumentList:
                 new_document["_rev"] = document["_rev"]
             self.table.insert(new_document)
 
-    def update(self, new_document: dict) -> None:
-        for document in self.document_list:
-            def merge_dicts(x, y):
-                z = x.copy()
-                z.update(y)
-                return z
-            self.table.insert(merge_dicts(document, new_document))
+    def update(self, modify_function_or_new_object: any) -> None:
+        if isinstance(modify_function_or_new_object, dict):
+            for document in self.document_list:
+                def merge_dicts(x, y):
+                    z = x.copy()
+                    z.update(y)
+                    return z
+                self.table.insert(merge_dicts(document, modify_function_or_new_object))
+        else:
+            for old_document in self.document_list:
+                new_document = modify_function_or_new_object(dict(old_document))
+                self.table.insert(new_document)
+
+    # def update_key(self, key: str, new_element: object) -> None:
+    #     for document in self.document_list:
+    #         document[key].append(new_element)
+    #         self.table.insert(document)    
 
     def delete(self) -> None:
         for document in self.document_list:
             self.table.delete(document)
+
+    def sort(self, keyname: str) -> None:
+        self.document_list = sorted(
+            self.document_list, key=lambda k: k[keyname] if keyname in k else 0)
+        return self
+
+    def reverse(self):
+        self.document_list.reverse()
+        return self
 
     @property
     def found(self):
@@ -127,3 +165,6 @@ class DocumentList:
 
     def __list__(self):
         return self.document_list
+
+    def __str__(self) -> str:
+        return f"jarvis.Database.DocumentList(table={str(self.table)}, list={str(self.document_list)})"

@@ -6,6 +6,7 @@ from .SetupTools import *
 from .Config import *
 from .Exiter import *
 from .Mime import *
+from .Security import *
 from .ProcessPool import *
 from .Logger import *
 from .Database import *
