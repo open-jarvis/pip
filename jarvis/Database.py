@@ -22,7 +22,7 @@ class Database:
                 f"http://{self.host}:{self.port}/", username=self.user, password=password)
         except Database.Exception:
             from jarvis import Logger
-            Logger.Logger.e1("database", "refused",
+            Logger.e1("database", "refused",
                              "connection refused, database not running", traceback.format_exc(), database_entry=False)
             exit(1)
 
