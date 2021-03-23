@@ -8,10 +8,21 @@ import traceback
 
 
 class Config:
+    """
+    A config class to store and load configuration information from the database
+    """
+
     def __init__(self) -> None:
+        """
+        Create an instance of the Config class.
+        """
         self.db = Database.Database()
 
     def set(self, key: str, value: object) -> bool:
+        """
+        Set a configuration key to a given value.  
+        sets `key` = `value`
+        """
         try:
             if self.db.table("config").filter({"key": key}).found:
                 self.db.table("config").filter({"key": key}).update({
@@ -33,6 +44,10 @@ class Config:
             return False
 
     def get(self, key: str, or_else: any = {}) -> object:
+        """
+        Get the value of a configuration key.  
+        returns `configuration`.`key` or if no entry found `or_else` which defaults to `{}`
+        """
         try:
             if self.db.table("config").filter({"key": key}).found:
                 return self.db.table("config").filter({"key": key})[0]

@@ -11,7 +11,9 @@ import string
 from jarvis import MQTT
 
 APPLICATION_TOKEN_LENGTH = 32
+"""Length of an application token"""
 ONE_TIME_CHANNEL_LENGTH = 64
+"""Length of the one-time MQTT reply channel"""
 
 
 class Jarvis:

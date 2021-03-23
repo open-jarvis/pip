@@ -3,8 +3,14 @@
 #
 
 class Mime:
+    """
+    Representation of the most common MIME types on the web
+    """
     @staticmethod
     def get(filename):
+        """
+        Guess the MIME type for a given filename
+        """
         try:
             return Mime._get(filename)
         except Exception:
@@ -12,7 +18,9 @@ class Mime:
 
     @staticmethod
     def _get(filename):
-        # helper function
+        """
+        A helper function that contains all MIME types and returns the one that matches the filename best
+        """
         mimes = {
             ".123"			: "application/vnd.lotus-1-2-3",
             ".3dml"			: "text/vnd.in3d.3dml",

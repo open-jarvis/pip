@@ -9,42 +9,83 @@ from jarvis import Database
 
 
 class Logger:
-    def __init__(self, referer):
-        self.referer = referer
+    """
+    A Logger class that logs to console and to Database
+    """
+    def __init__(self, referrer):
+        """
+        Initialize the logger
+        * `referrer` specifies the code piece that runs the Logger class.  
+            This could be the name of the Python file or another descriptive name
+        """
+        self.referrer = referrer
         self.to_console = True
 
     def console_on(self):
+        """
+        Turn console logging on
+        """
         self.to_console = True
 
     def console_off(self):
+        """
+        Turn console logging off
+        """
         self.to_console = False
 
     def i(self, tag: str, message: str):
-        Logger.log(self.referer, "I", tag, message, to_console=self.to_console)
+        """
+        Log an `info` message
+        """
+        Logger.log(self.referrer, "I", tag, message, to_console=self.to_console)
 
     def e(self, tag: str, message: str, exception_str: str):
-        Logger.log(self.referer, "E", tag, message,
+        """
+        Log an `error` message
+        """
+        Logger.log(self.referrer, "E", tag, message,
                    to_console=self.to_console, exception_str=exception_str)
 
     def w(self, tag: str, message: str):
-        Logger.log(self.referer, "W", tag, message, to_console=self.to_console)
+        """
+        Log a `warning` message
+        """
+        Logger.log(self.referrer, "W", tag, message, to_console=self.to_console)
 
     def s(self, tag: str, message: str):
-        Logger.log(self.referer, "S", tag, message, to_console=self.to_console)
+        """
+        Log a `success` message
+        """
+        Logger.log(self.referrer, "S", tag, message, to_console=self.to_console)
 
     def c(self, tag: str, message: str):
-        Logger.log(self.referer, "C", tag, message, to_console=self.to_console)
+        """
+        Log a `critical` message
+        """
+        Logger.log(self.referrer, "C", tag, message, to_console=self.to_console)
 
     @staticmethod
-    def log(referer: str, pre: str, tag: str, message: object, exception_str: str = None, to_console: bool = True, database_entry: bool = True):
+    def log(referrer: str, pre: str, tag: str, message: object, exception_str: str = None, to_console: bool = True, database_entry: bool = True):
+        """
+        This function creates the log entry  
+        It's used be the `Logger` class but also from outside, if all arguments are provided
+        * `referrer` specifies the referring Python script or another descriptive string
+        * `pre` is either I, W, E, S or C which stands for info, warning, error, success or critical
+        * `tag` is a small string that describes the message
+        * `message` is the actual message
+        * `exception_str` contains the exception traceback if any
+        * `to_console` sets if the message should be printed to console
+        * `database_entry` specifies if a database entry should be made  
+            If the database is down, set this to False
+        """
         if to_console:
-            print("{} - {}/{} - {}".format(str(datetime.now()), pre, referer +
-                                           (" " * (12-len(referer))), message))
+            print("{} - {}/{} - {}".format(str(datetime.now()), pre, referrer +
+                                           (" " * (12-len(referrer))), message))
 
         if database_entry:
             obj = {
                 "timestamp": time.time(),
-                "referer": referer,
+                "referrer": referrer,
                 "importance": pre,
                 "tag": tag,
                 "message": message
@@ -60,26 +101,41 @@ class Logger:
                 exit(1)
 
     @staticmethod
-    def i1(referer: str, tag: str, message: object, database_entry: bool = True):
-        Logger.log(referer, "I", tag, message, to_console=True,
+    def i1(referrer: str, tag: str, message: object, database_entry: bool = True):
+        """
+        Create a one-time info log message
+        """
+        Logger.log(referrer, "I", tag, message, to_console=True,
                    database_entry=database_entry)
 
     @staticmethod
-    def e1(referer: str, tag: str, message: object, exception_str: str, database_entry: bool = True):
-        Logger.log(referer, "E", tag, message, exception_str=exception_str,
+    def e1(referrer: str, tag: str, message: object, exception_str: str, database_entry: bool = True):
+        """
+        Create a one-time error log message
+        """
+        Logger.log(referrer, "E", tag, message, exception_str=exception_str,
                    to_console=True, database_entry=database_entry)
 
     @staticmethod
-    def w1(referer: str, tag: str, message: object, database_entry: bool = True):
-        Logger.log(referer, "W", tag, message, to_console=True,
+    def w1(referrer: str, tag: str, message: object, database_entry: bool = True):
+        """
+        Create a one-time warning log message
+        """
+        Logger.log(referrer, "W", tag, message, to_console=True,
                    database_entry=database_entry)
 
     @staticmethod
-    def s1(referer: str, tag: str, message: object, database_entry: bool = True):
-        Logger.log(referer, "S", tag, message, to_console=True,
+    def s1(referrer: str, tag: str, message: object, database_entry: bool = True):
+        """
+        Create a one-time success log message
+        """
+        Logger.log(referrer, "S", tag, message, to_console=True,
                    database_entry=database_entry)
 
     @staticmethod
-    def c1(referer: str, tag: str, message: object, database_entry: bool = True):
-        Logger.log(referer, "C", tag, message, to_console=True,
+    def c1(referrer: str, tag: str, message: object, database_entry: bool = True):
+        """
+        Create a one-time critical log message
+        """
+        Logger.log(referrer, "C", tag, message, to_console=True,
                    database_entry=database_entry)
