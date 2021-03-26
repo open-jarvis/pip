@@ -5,6 +5,7 @@ The Jarvis class handles MQTT application access and is part of the <a href="htt
 """
 
 import json
+from socket import SO_REUSEPORT
 import time
 import random
 import string
@@ -113,28 +114,44 @@ class Jarvis:
         """
         return json.loads(self._send_and_receive("jarvis/api/decision/delete", {"id": id}))
 
-    def _send_and_receive(self, topic: str, message: object = {}):
+    def _send_and_receive(self, topic: str, message: object = {}, timeout: int = 2):
         if self.token is None:
             raise AttributeError("self.token is None!")
-        one_time_channel = "jarvis/reply/" + \
-            ''.join(random.choice("0123456789abcdef")
-                    for _ in range(ONE_TIME_CHANNEL_LENGTH))
         message["token"] = self.token
         if self.faster:
             self.mqtt.publish(topic, json.dumps(message))
             return "{}"
         else:
-            message["reply-to"] = one_time_channel
-            self.mqtt.publish(topic, json.dumps(message))
-            while one_time_channel not in Jarvis._responses:
+            return Jarvis.api(topic, message, timeout)
+
+    @staticmethod
+    def api(topic: str, message: object, timeout: int = 2):
+        try:
+            otc = "jarvis/tmp/" + \
+                ''.join(random.choice("0123456789abcdef")
+                        for _ in range(ONE_TIME_CHANNEL_LENGTH))
+            message["reply-to"] = otc
+            mqtt = MQTT.MQTT(client_id="one-time-" + str(time.time()))
+            mqtt.on_message(Jarvis._on_msg)
+            mqtt.subscribe("#")
+            mqtt.publish(topic, json.dumps(message))
+            start = time.time()
+            while otc not in Jarvis._responses:
                 time.sleep(0.1)
-            response = Jarvis._responses[one_time_channel]
-            del Jarvis._responses[one_time_channel]
+                if start + timeout < time.time():
+                    Jarvis._responses[otc] = False
+            response = Jarvis._responses[otc]
+            del Jarvis._responses[otc]
+            mqtt.disconnect()
+            del mqtt
             return response
+        except Exception:
+            return '{"success":false}'
+
 
     @staticmethod
     def _on_msg(client: object, userdata: object, message: object):
         topic = message.topic
         data = message.payload.decode()
-        if topic.startswith("jarvis/reply/"):
+        if topic.startswith("jarvis/tmp/"):
             Jarvis._responses[topic] = data

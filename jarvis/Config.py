@@ -50,7 +50,7 @@ class Config:
         """
         try:
             if self.db.table("config").filter({"key": key}).found:
-                return self.db.table("config").filter({"key": key})[0]
+                return self.db.table("config").filter({"key": key})[0]["value"]
             return or_else
         except Database.Exception:
             Logger.Logger.e1(

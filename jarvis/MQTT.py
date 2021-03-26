@@ -35,7 +35,7 @@ class MQTT:
 
         try:
             self.client.connect(self.host, self.port)
-        except Database.Exception:
+        except Exception:
             Logger.Logger.e1("mqtt", "refused",
                              "connection refused, mosquitto not installed", traceback.format_exc())
             exit(1)
@@ -70,3 +70,10 @@ class MQTT:
         * `topic` to subscribe to
         """
         return self.client.subscribe(topic)
+
+    def disconnect(self):
+        """
+        Disconnect from the broker cleanly.  
+        Using disconnect() will not result in a will message being sent by the broker.
+        """
+        return self.client.disconnect()
