@@ -4,10 +4,10 @@
 
 import hashlib
 import random
-from OpenSSL import crypto, SSL
 from jarvis import Config
 import ssl
 import time
+import hashlib, binascii, os
 
 
 class Security:
@@ -58,7 +58,7 @@ class Security:
                     serialNumber=0,
                     validityStartInSeconds=0,
                     validityEndInSeconds=10*365*24*60*60):
-            
+        from OpenSSL import crypto, SSL
         """
         Generate a RSA key with `len` bitlength  
         Returns the PEM string representation of the key
@@ -88,6 +88,7 @@ class Security:
             "private-key": crypto.dump_privatekey(crypto.FILETYPE_PEM, k).decode("utf-8")
         }
 
+    # TODO: add pydoc
     @staticmethod
     def ssh_context():
         config = Config()
@@ -100,4 +101,27 @@ class Security:
 
         context.load_cert_chain(crt, pk)
         return context
+    
+    @staticmethod
+    def hash(password):
+        """
+        Hash a password for storing.
+        """
+        salt = hashlib.sha256(os.urandom(60)).hexdigest().encode('ascii')
+        pwdhash = hashlib.pbkdf2_hmac('sha512', password.encode('utf-8'), salt, 100000)
+        pwdhash = binascii.hexlify(pwdhash)
+        return (salt + pwdhash).decode('ascii')
 
+    @staticmethod
+    def check(stored_password, provided_password):
+        """
+        Verify a stored password against one provided by user
+        """
+        salt = stored_password[:64]
+        stored_password = stored_password[64:]
+        pwdhash = hashlib.pbkdf2_hmac('sha512', 
+                                    provided_password.encode('utf-8'), 
+                                    salt.encode('ascii'), 
+                                    100000)
+        pwdhash = binascii.hexlify(pwdhash).decode('ascii')
+        return pwdhash == stored_password
