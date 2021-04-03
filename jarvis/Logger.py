@@ -94,11 +94,10 @@ class Logger:
                 obj["exception"] = exception_str
 
             try:
-                Database.Database().table("logs").insert(obj)
+                Database.Database(exit_on_fail=False).table("logs").insert(obj)
             except Database.Database.Exception:
                 Logger.e1("logger", "db-error", "failed to insert log data, database not running",
-                          traceback.format_exc(), to_console=True, database_entry=False)
-                exit(1)
+                          traceback.format_exc(), database_entry=False)
 
     @staticmethod
     def i1(referrer: str, tag: str, message: object, database_entry: bool = True):

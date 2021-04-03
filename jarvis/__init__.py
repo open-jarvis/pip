@@ -28,3 +28,7 @@ from .Security import *
 from .ProcessPool import *
 from .Logger import *
 from .Database import *
+
+def update():
+    from pip._internal import main as pipmain
+    pipmain(["install", "--upgrade", "--no-deps", "open-jarvis"])

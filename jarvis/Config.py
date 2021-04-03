@@ -16,7 +16,7 @@ class Config:
         """
         Create an instance of the Config class.
         """
-        self.db = Database.Database()
+        self.db = Database.Database(exit_on_fail=False)
 
     def set(self, key: str, value: object) -> bool:
         """
@@ -37,7 +37,6 @@ class Config:
         except Database.Exception:
             Logger.Logger.e1(
                 "config", "set", f"connection refused while setting key {key}, database not running", traceback.format_exc())
-            exit(1)
         except Exception:
             Logger.Logger.e1(
                 "config", "set", f"unknown error while setting key {key}", traceback.format_exc())
@@ -55,7 +54,6 @@ class Config:
         except Database.Exception:
             Logger.Logger.e1(
                 "config", "get", f"connection refused while getting key {key}, database not running", traceback.format_exc())
-            exit(1)
         except Exception:
             Logger.Logger.e1(
                 "config", "get", f"unknown error while getting key {key}", traceback.format_exc())

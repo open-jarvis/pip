@@ -26,12 +26,12 @@ class Database:
     A Database class which handles DB connections and exceptions
     """
 
-    Exception = requests.ConnectionError
+    Exception = (requests.ConnectionError, Exception)
     """
     An exception or a list of exception which might occur while making operations with the Database
     """
 
-    def __init__(self, username: str = "jarvis", password: str = "jarvis", name: str = "jarvis", hostname: str = "127.0.0.1", port: int = 5984) -> None:
+    def __init__(self, username: str = "jarvis", password: str = "jarvis", name: str = "jarvis", hostname: str = "127.0.0.1", port: int = 5984, exit_on_fail=True) -> None:
         """
         Creates a Database connection with the following arguments:
         * `username` specifies the database username
@@ -39,6 +39,7 @@ class Database:
         * `name` specifies the database name
         * `hostname` specifies the hostname the database is running on
         * `port` specifies the port the database is running on
+        * `exit_on_fail` if this switch is set, exit if the database is not running, default false
         """
         self.host = hostname
         self.port = port
@@ -52,7 +53,9 @@ class Database:
             from jarvis import Logger
             Logger.e1("database", "refused",
                              "connection refused, database not running", traceback.format_exc(), database_entry=False)
-            exit(1)
+            print(exit_on_fail)
+            if exit_on_fail:
+                exit(1)
 
     def table(self, table_name: str, pure: bool = False):
         """

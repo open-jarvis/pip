@@ -19,28 +19,22 @@ class ProcessPool:
         self.processes = []
         self.logging_instance = logging_instance
 
-    def terminate(self, p: multiprocessing.Process, name: str, max_tries: int = 3, time_between_tries: int = 2) -> None:
+    def terminate(self, p: multiprocessing.Process, name: str, grace_period: int = 2) -> None:
         """
         Terminate a p `process` with a given `name`
         * `max_tries` specifies the max tries with a terminate signal before killing the process
         * `time_between_tries` sets the seconds between each try
         """
         p.terminate()
-        print(p)
-        i = 0
-        while p.is_alive():
-            i += 1
-            if i > max_tries:
-                if self.logging_instance is not None:
-                    self.logging_instance.i(
-                        "process", f"killing process '{name}', didn't react to terminate signals")
-                p.kill()
-                return
-            else:
-                if self.logging_instance is not None:
-                    self.logging_instance.i(
-                        "process", f"waiting for the '{name}' process to terminate (try {i})")
-                time.sleep(time_between_tries)
+        if self.logging_instance is not None:
+            self.logging_instance.i(
+                "process", f"waiting for process '{name}' to terminate, grace period of {grace_period}s")
+        time.sleep(grace_period)
+        if p.is_alive():
+            if self.logging_instance is not None:
+                self.logging_instance.i(
+                    "process", f"killing process '{name}', grace period of {grace_period}s is over")
+            p.kill()
 
     def register(self, target_function: any, process_name: str, args: list = []) -> None:
         """
@@ -54,10 +48,10 @@ class ProcessPool:
         p.start()
         self.processes.append(p)
 
-    def stop_all(self) -> None:
+    def stop_all(self, grace_period: int = 2) -> None:
         """
         Stop all processes in the ProcessPool  
         Try terminating the processes before killing them
         """
         for p in self.processes:
-            self.terminate(p, p.name)
+            self.terminate(p, p.name, grace_period)
