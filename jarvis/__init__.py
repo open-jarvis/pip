@@ -11,7 +11,7 @@
 * [Exiter](jarvis/Exiter.html)
 * [Mime](jarvis/Mime.html)
 * [Security](jarvis/Security.html)
-* [ProcessPool](jarvis/ProcessPool.html)
+* [ThreadPool](jarvis/ThreadPool.html)
 * [Logger](jarvis/Logger.html)
 * [Database](jarvis/Database.html)
 """
@@ -25,10 +25,13 @@ from .Config import *
 from .Exiter import *
 from .Mime import *
 from .Security import *
-from .ProcessPool import *
+from .ThreadPool import *
 from .Logger import *
 from .Database import *
 
 def update():
-    from pip._internal import main as pipmain
-    pipmain(["install", "--upgrade", "--no-deps", "open-jarvis"])
+    try:
+        from pip._internal import main as pipmain
+        pipmain(["install", "--upgrade", "--no-deps", "open-jarvis"])
+    except Exception:
+        print("WARNING: pip could not update, not critical")

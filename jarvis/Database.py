@@ -16,7 +16,8 @@ def benchmark(func):
         start = time.time()
         res = func(*args, **kwargs)
         end = time.time()
-        print(f"Database::{func.__name__} took {end-start}s")
+        if end-start > 1:
+            print(f"Database::{func.__name__} took {end-start}s")
         return res
     return wrap
 
@@ -53,7 +54,6 @@ class Database:
             from jarvis import Logger
             Logger.e1("database", "refused",
                              "connection refused, database not running", traceback.format_exc(), database_entry=False)
-            print(exit_on_fail)
             if exit_on_fail:
                 exit(1)
 
@@ -98,6 +98,8 @@ class Database:
         """
         Return string representation of the Database
         """
+        if not hasattr(self, "name"):
+            self.name = "ERROR"
         return f"jarvis.Database.Database({self.name})"
 
 
@@ -146,6 +148,7 @@ class Table:
     @benchmark
     def filter(self, filter: any = {}) -> list:
         """
+        THE USE OF THIS FUNCTION IS DISCOURAGED! USE FIND INSTEAD!
         Filters a table  
         `filter` can be either a lamba or object  
         Returns a list of all documents that match
@@ -198,6 +201,8 @@ class Table:
         """
         Returns string representation of the current table
         """
+        if not hasattr(self, "name"):
+            self.name = "ERROR"
         return f"jarvis.Database.Table({self.name})"
 
 
@@ -293,4 +298,8 @@ class DocumentList:
         """
         String representation of the current DocumentList
         """
+        if not hasattr(self, "table"):
+            self.table = "ERROR"
+        if not hasattr(self, "document_list"):
+            self.document_list = []
         return f"jarvis.Database.DocumentList(table={str(self.table)}, list={str(self.document_list)})"
