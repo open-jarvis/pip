@@ -20,7 +20,8 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=[
         'paho.mqtt; platform_machine == "armv7l"',
-        'couchdb2'
+        'couchdb2',
+        'python-dateutil'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

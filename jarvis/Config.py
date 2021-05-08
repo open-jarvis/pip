@@ -24,8 +24,9 @@ class Config:
         sets `key` = `value`
         """
         try:
-            if self.db.table("config").find({"key": {"$eq": key}}).found:
-                self.db.table("config").find({"key": {"$eq": key}}).update({
+            res = self.db.table("config").find({"key": {"$eq": key}})
+            if res.found:
+                res.update({
                     "value": value
                 })
             else:
@@ -48,8 +49,9 @@ class Config:
         returns `configuration`.`key` or if no entry found `or_else` which defaults to `{}`
         """
         try:
-            if self.db.table("config").find({"key": {"$eq": key}}).found:
-                return self.db.table("config").find({"key": {"$eq": key}})[0]["value"]
+            res = self.db.table("config").find({"key": {"$eq": key}})
+            if res.found:
+                return res[0]["value"]
             return or_else
         except Database.Database.Exception:
             Logger.Logger.e1(

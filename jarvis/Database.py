@@ -195,7 +195,13 @@ class Table:
         """
         Return the size of the current table in bytes
         """
-        return dict(self.table.get_info())["sizes"]["active"]
+        info = dict(self.table.get_info())
+        return info["sizes"]["active"]
+    
+    @property
+    def count(self):
+        info = dict(self.table.get_info())
+        return info["doc_count"]
 
     def __str__(self) -> str:
         """
