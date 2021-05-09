@@ -143,7 +143,11 @@ class Table:
         """
         Insert a document in the current table
         """
-        return self.table.put(document)
+        try:
+            self.table.put(document)
+            return True
+        except Database.Exception:
+            return False
 
     @benchmark
     def filter(self, filter: any = {}) -> list:

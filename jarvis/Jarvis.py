@@ -5,7 +5,6 @@ The Jarvis class handles MQTT application access and is part of the <a href="htt
 """
 
 import json
-from socket import SO_REUSEPORT
 import time
 import random
 import string
