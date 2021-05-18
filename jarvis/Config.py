@@ -21,10 +21,10 @@ class Config:
     def set(self, key: str, value: object) -> bool:
         """
         Set a configuration key to a given value.  
-        sets `key` = `value`
+        Sets `key` = `value`
         """
         try:
-            res = self.db.table("config").find({"key": {"$eq": key}})
+            res = self.db.table("config").find({ "key": { "$eq": key }})
             if res.found:
                 res.update({
                     "value": value
@@ -36,17 +36,15 @@ class Config:
                 })
             return True
         except Database.Database.Exception:
-            Logger.Logger.e1(
-                "config", "set", f"connection refused while setting key {key}, database not running", traceback.format_exc())
+            Logger.Logger.e1("Config", "Set", f"Connection refused while setting key '{key}', database not running", traceback.format_exc())
         except Exception:
-            Logger.Logger.e1(
-                "config", "set", f"unknown error while setting key {key}", traceback.format_exc())
-            return False
+            Logger.Logger.e1("Config", "Set", f"Unknown error while setting key '{key}'", traceback.format_exc())
+        return False
 
     def get(self, key: str, or_else: any = {}) -> object:
         """
         Get the value of a configuration key.  
-        returns `configuration`.`key` or if no entry found `or_else` which defaults to `{}`
+        Returns `configuration`.`key` or if no entry found `or_else` which defaults to `{}`
         """
         try:
             res = self.db.table("config").find({"key": {"$eq": key}})
@@ -54,9 +52,7 @@ class Config:
                 return res[0]["value"]
             return or_else
         except Database.Database.Exception:
-            Logger.Logger.e1(
-                "config", "get", f"connection refused while getting key {key}, database not running", traceback.format_exc())
+            Logger.Logger.e1("Config", "Get", f"Connection refused while getting key '{key}', database not running", traceback.format_exc())
         except Exception:
-            Logger.Logger.e1(
-                "config", "get", f"unknown error while getting key {key}", traceback.format_exc())
-            return or_else
+            Logger.Logger.e1("Config", "Get", f"Unknown error while getting key '{key}'", traceback.format_exc())
+        return or_else

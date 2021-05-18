@@ -31,8 +31,7 @@ class MQTT:
             self.client.connect(self.host, self.port)
         except Exception:
             print(traceback.format_exc())
-            Logger.Logger.e1("mqtt", "refused", "connection refused, mosquitto not installed", traceback.format_exc())
-            exit(1)
+            Logger.Logger.e1("MQTT", "Refused", "Connection refused, mosquitto not installed or not running", traceback.format_exc())
 
     def on_connect(self, fn: Callable):
         """

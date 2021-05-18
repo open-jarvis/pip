@@ -1,7 +1,9 @@
-#
-# Copyright (c) 2020 by Philipp Scheer. All Rights Reserved.
-#
+"""
+Copyright (c) 2021 Philipp Scheer
+"""
 
+
+import time
 import signal
 from typing import Callable
 
@@ -30,6 +32,11 @@ class Exiter:
         * `args` specifies args which should be passed to the `on_exit_fn`
         """
         Exiter.exit_fn_list.append({"fn": on_exit_fn, "args": args})
+
+    @staticmethod
+    def mainloop(sleep_interval=1):
+        while Exiter.running:
+            time.sleep(sleep_interval)
 
     @staticmethod
     def exit_fn(signum: int, frame: str) -> None:
