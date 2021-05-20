@@ -1,13 +1,14 @@
-#
-# Copyright (c) 2020 by Philipp Scheer. All Rights Reserved.
-#
+"""
+Copyright (c) 2021 Philipp Scheer
+"""
 
-import hashlib
-import random
-from jarvis import Config
+
 import ssl
 import time
+import random
+import hashlib
 import hashlib, binascii, os
+from jarvis import Config
 
 
 class Security:
@@ -58,11 +59,17 @@ class Security:
                     serialNumber=0,
                     validityStartInSeconds=0,
                     validityEndInSeconds=10*365*24*60*60):
-        from OpenSSL import crypto, SSL
         """
         Generate a RSA key with `len` bitlength  
-        Returns the PEM string representation of the key
+        Returns a PEM certificate and private-key:
+        ```python
+        {
+            "certificate": ... PEM representation of the certificate ...,
+            "private-key": ... PEM representation of the private-key ...
+        }
+        ```
         """
+        from OpenSSL import crypto, SSL
         #can look at generated file using openssl:
         #openssl x509 -inform pem -in selfsigned.crt -noout -text
         # create a key pair
@@ -88,9 +95,11 @@ class Security:
             "private-key": crypto.dump_privatekey(crypto.FILETYPE_PEM, k).decode("utf-8")
         }
 
-    # TODO: add pydoc
     @staticmethod
-    def ssh_context():
+    def ssh_context() -> ssl.SSLContext:
+        """
+        Return a ssl.SSLContext containing the certificate and private key from database
+        """
         config = Config()
         context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
 
@@ -101,27 +110,3 @@ class Security:
 
         context.load_cert_chain(crt, pk)
         return context
-    
-    @staticmethod
-    def hash(password):
-        """
-        Hash a password for storing.
-        """
-        salt = hashlib.sha256(os.urandom(60)).hexdigest().encode('ascii')
-        pwdhash = hashlib.pbkdf2_hmac('sha512', password.encode('utf-8'), salt, 100000)
-        pwdhash = binascii.hexlify(pwdhash)
-        return (salt + pwdhash).decode('ascii')
-
-    @staticmethod
-    def check(stored_password, provided_password):
-        """
-        Verify a stored password against one provided by user
-        """
-        salt = stored_password[:64]
-        stored_password = stored_password[64:]
-        pwdhash = hashlib.pbkdf2_hmac('sha512', 
-                                    provided_password.encode('utf-8'), 
-                                    salt.encode('ascii'), 
-                                    100000)
-        pwdhash = binascii.hexlify(pwdhash).decode('ascii')
-        return pwdhash == stored_password

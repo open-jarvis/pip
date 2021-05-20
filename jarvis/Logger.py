@@ -12,6 +12,10 @@ class Logger:
     """
     A Logger class that logs to console and to Database
     """
+
+    _pause = False
+    """Pause logging"""
+
     def __init__(self, referrer):
         """
         Initialize the logger
@@ -22,47 +26,42 @@ class Logger:
         self.to_console = True
 
     def console_on(self):
-        """
-        Turn console logging on
-        """
+        """Turn console logging on"""
         self.to_console = True
 
+    @staticmethod
+    def pause():
+        """Pause logging"""
+        Logger._pause = True
+    
+    @staticmethod
+    def resume():
+        """Resume logging"""
+        Logger._pause = False
+
     def console_off(self):
-        """
-        Turn console logging off
-        """
+        """Turn console logging off"""
         self.to_console = False
 
-    def i(self, tag: str, message: str):
-        """
-        Log an `info` message
-        """
-        Logger.log(self.referrer, "I", tag, message, to_console=self.to_console)
+    def i(self, tag: str, message: str, to_db: bool = True):
+        """Log an `info` message"""
+        Logger.log(self.referrer, "I", tag, message, to_console=self.to_console, database_entry=to_db)
 
-    def e(self, tag: str, message: str, exception_str: str):
-        """
-        Log an `error` message
-        """
-        Logger.log(self.referrer, "E", tag, message,
-                   to_console=self.to_console, exception_str=exception_str)
+    def e(self, tag: str, message: str, exception_str: str, to_db: bool = True):
+        """Log an `error` message"""
+        Logger.log(self.referrer, "E", tag, message, to_console=self.to_console, exception_str=exception_str, database_entry=to_db)
 
-    def w(self, tag: str, message: str):
-        """
-        Log a `warning` message
-        """
-        Logger.log(self.referrer, "W", tag, message, to_console=self.to_console)
+    def w(self, tag: str, message: str, to_db: bool = True):
+        """Log a `warning` message"""
+        Logger.log(self.referrer, "W", tag, message, to_console=self.to_console, database_entry=to_db)
 
-    def s(self, tag: str, message: str):
-        """
-        Log a `success` message
-        """
-        Logger.log(self.referrer, "S", tag, message, to_console=self.to_console)
+    def s(self, tag: str, message: str, to_db: bool = True):
+        """Log a `success` message"""
+        Logger.log(self.referrer, "S", tag, message, to_console=self.to_console, database_entry=to_db)
 
-    def c(self, tag: str, message: str):
-        """
-        Log a `critical` message
-        """
-        Logger.log(self.referrer, "C", tag, message, to_console=self.to_console)
+    def c(self, tag: str, message: str, to_db: bool = True):
+        """Log a `critical` message"""
+        Logger.log(self.referrer, "C", tag, message, to_console=self.to_console, database_entry=to_db)
 
     @staticmethod
     def log(referrer: str, pre: str, tag: str, message: object, exception_str: str = None, to_console: bool = True, database_entry: bool = True):
@@ -78,6 +77,9 @@ class Logger:
         * `database_entry` specifies if a database entry should be made  
             If the database is down, set this to False
         """
+        if Logger._pause:
+            return
+
         if to_console:
             print("{} - {}/{} - {}".format(str(datetime.now()), pre, referrer +
                                            (" " * (12-len(referrer))), message))
@@ -96,45 +98,29 @@ class Logger:
             try:
                 Database.Database(exit_on_fail=False).table("logs").insert(obj)
             except Database.Database.Exception:
-                Logger.e1("logger", "db-error", "failed to insert log data, database not running",
-                          traceback.format_exc(), database_entry=False)
+                Logger.e1("Logger", "DB", "Failed to insert log data, database not running", traceback.format_exc(), database_entry=False)
 
     @staticmethod
     def i1(referrer: str, tag: str, message: object, database_entry: bool = True):
-        """
-        Create a one-time info log message
-        """
-        Logger.log(referrer, "I", tag, message, to_console=True,
-                   database_entry=database_entry)
+        """Create a one-time info log message"""
+        Logger.log(referrer, "I", tag, message, to_console=True, database_entry=database_entry)
 
     @staticmethod
     def e1(referrer: str, tag: str, message: object, exception_str: str, database_entry: bool = True):
-        """
-        Create a one-time error log message
-        """
-        Logger.log(referrer, "E", tag, message, exception_str=exception_str,
-                   to_console=True, database_entry=database_entry)
+        """Create a one-time error log message"""
+        Logger.log(referrer, "E", tag, message, exception_str=exception_str, to_console=True, database_entry=database_entry)
 
     @staticmethod
     def w1(referrer: str, tag: str, message: object, database_entry: bool = True):
-        """
-        Create a one-time warning log message
-        """
-        Logger.log(referrer, "W", tag, message, to_console=True,
-                   database_entry=database_entry)
+        """Create a one-time warning log message"""
+        Logger.log(referrer, "W", tag, message, to_console=True, database_entry=database_entry)
 
     @staticmethod
     def s1(referrer: str, tag: str, message: object, database_entry: bool = True):
-        """
-        Create a one-time success log message
-        """
-        Logger.log(referrer, "S", tag, message, to_console=True,
-                   database_entry=database_entry)
+        """Create a one-time success log message"""
+        Logger.log(referrer, "S", tag, message, to_console=True, database_entry=database_entry)
 
     @staticmethod
     def c1(referrer: str, tag: str, message: object, database_entry: bool = True):
-        """
-        Create a one-time critical log message
-        """
-        Logger.log(referrer, "C", tag, message, to_console=True,
-                   database_entry=database_entry)
+        """Create a one-time critical log message"""
+        Logger.log(referrer, "C", tag, message, to_console=True, database_entry=database_entry)

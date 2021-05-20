@@ -4,7 +4,8 @@
 
 from typing import Callable
 from jarvis import Logger
-import paho.mqtt.client as pahomqtt
+from paho.mqtt.client import Client
+from paho.mqtt.matcher import MQTTMatcher
 import random
 import traceback
 
@@ -25,7 +26,7 @@ class MQTT:
         self.host = host
         self.port = port
 
-        self.client = pahomqtt.Client('jarvis|' + ''.join(random.choices("0123456abcdef", k=16)))
+        self.client = Client('jarvis|' + ''.join(random.choices("0123456abcdef", k=16)))
 
         try:
             self.client.connect(self.host, self.port)
@@ -70,3 +71,18 @@ class MQTT:
         """
         self.client.disconnect()
         return True
+
+    @staticmethod
+    def match(subsciption: str, topic: str) -> bool:
+        """Check whether a topic matches a subscription.  
+        For example:  
+        foo/bar would match the subscription foo/# or +/bar  
+        non/matching would not match the subscription non/+/+
+        """
+        matcher = MQTTMatcher()
+        matcher[subsciption] = True
+        try:
+            next(matcher.iter_match(topic))
+            return True
+        except StopIteration:
+            return False
