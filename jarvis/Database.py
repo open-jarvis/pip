@@ -46,6 +46,7 @@ class Database:
         self.port = port
         self.user = username
         self.name = name
+        self.server = None
 
         try:
             self.server = couchdb2.Server(f"http://{self.host}:{self.port}/", username=self.user, password=password)
@@ -65,40 +66,30 @@ class Database:
         return Table(self.server, table_name if pure else f"{self.name}-{table_name}")
 
     def delete(self):
-        """
-        Delete the current Database 
-        """
+        """Delete the current Database """
         for db in self.server:
             if str(db).startswith(f"{self.name}-"):
                 db.destroy()
 
     def drop(self):
-        """
-        Delete the current Database
-        """
+        """Delete the current Database"""
         return self.delete()
 
     @property
     def stats(self):
-        """
-        Contains Database stats
-        """
+        """Contains Database stats"""
         return self.server.get_node_stats(nodename='_local')
 
     @property
     def up(self):
-        """
-        Check if Database is up and running
-        """
+        """Check if Database is up and running"""
         try:
             return self.server.up()
         except Database.Exception:
             return False
 
     def __str__(self) -> str:
-        """
-        Return string representation of the Database
-        """
+        """Return string representation of the Database"""
         if not hasattr(self, "name"):
             self.name = "ERROR"
         return f"jarvis.Database.Database({self.name})"

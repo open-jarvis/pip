@@ -2,12 +2,14 @@
 ## Helper Module
 
 ### List of classes:
-* [Jarvis](jarvis/Jarvis.html)
+* [API](jarvis/API.html)
 * [MQTT](jarvis/MQTT.html)
+* [Client](jarvis/Client.html)
 * [Colors](jarvis/Colors.html)
 * [Config](jarvis/Config.html)
+* [Crypto](jarvis/Crypto.html)
+* [Protocol](jarvis/Protocol.html)
 * [SetupTools](jarvis/SetupTools.html)
-* [Config](jarvis/Config.html)
 * [Exiter](jarvis/Exiter.html)
 * [Mime](jarvis/Mime.html)
 * [Security](jarvis/Security.html)
@@ -16,12 +18,14 @@
 * [Database](jarvis/Database.html)
 """
 
-from .Jarvis import *
+from .API import *
 from .MQTT import *
+from .Client import *
 from .Colors import *
 from .Config import *
+from .Crypto import *
+from .Protocol import *
 from .SetupTools import *
-from .Config import *
 from .Exiter import *
 from .Mime import *
 from .Security import *
