@@ -81,16 +81,22 @@ class MQTT:
         return True
 
     @staticmethod
-    def onetime(topic: str, message: object, timeout: int = 2) -> str:
+    def onetime(topic: str, message: object, timeout: int = 2, send_raw: bool = False) -> str:
         """Send a onetime message and wait for a result.  
-        The client should respond to the generated 'reply-to' channel"""
+        The client should respond to the generated 'reply-to' channel  
+        If `timeout` is 0, return immediately and don't wait for a response. Message does not include a `reply-to` channel then  
+        If `send_raw` is `True`, send the raw `message` string (must convert to string before!)"""
         try:
-            otc = "jarvis/tmp/" + ''.join(random.choice("0123456789abcdef") for _ in range(ONE_TIME_CHANNEL_LENGTH))
-            message["reply-to"] = otc
+            if timeout != 0:
+                otc = "jarvis/tmp/" + ''.join(random.choice("0123456789abcdef") for _ in range(ONE_TIME_CHANNEL_LENGTH))
+                message["reply-to"] = otc
             mqtt = MQTT.MQTT(client_id="one-time-" + str(time.time()))
             mqtt.on_message(MQTT._on_msg)
             mqtt.subscribe("#")
-            mqtt.publish(topic, json.dumps(message))
+            mqtt.publish(topic, message if send_raw else json.dumps(message))
+            if timeout == 0: # return if timeout = 0
+                mqtt.disconnect()
+                return
             start = time.time()
             while otc not in MQTT._responses:
                 time.sleep(0.1)
