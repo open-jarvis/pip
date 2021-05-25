@@ -127,14 +127,14 @@ class MQTT:
             MQTT._responses[topic] = data
 
     @staticmethod
-    def match(subsciption: str, topic: str) -> bool:
+    def match(subscription: str, topic: str) -> bool:
         """Check whether a topic matches a subscription.  
         For example:  
         foo/bar would match the subscription foo/# or +/bar  
         non/matching would not match the subscription non/+/+
         """
         matcher = MQTTMatcher()
-        matcher[subsciption] = True
+        matcher[subscription] = True
         try:
             next(matcher.iter_match(topic))
             return True

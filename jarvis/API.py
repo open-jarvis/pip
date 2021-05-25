@@ -3,12 +3,14 @@ Copyright (c) 2021 Philipp Scheer
 """
 
 
+import re
 import os
 import sys
 import json
 import inspect
 import traceback
 from collections import OrderedDict
+from jarvis.MQTT import MQTT
 
 
 class API():
@@ -26,8 +28,13 @@ class API():
         return { "status": True } if use_json else True
     
     @API.route("jarvis/exception")
-    def serve_test_exception():
+    def serve_test_exception(data):
         raise Exception("This is a test") # will get caught by API and converted to 'This is a test'
+    
+    @API.route("jarvis/client/+/ping")
+    def serve_client_ping(args, data):
+        client_id = args[0]
+        return f"client {client_id} is up!"
     ```
 
     If you want to execute an API endpoint, use:
@@ -62,9 +69,14 @@ class API():
         """
         Get a route from array, else return the default route
         """
-        if route in API.routes:
-            return API.routes[route]
-        return API.default_route
+        for subscription in API.routes:
+            if MQTT.match(subscription, route):
+                reg = subscription.replace("/", "\\/", "#", "([^ ]+)")
+                res = re.search(reg, route)
+                if res:
+                    return (API.routes[route], res.group(1).split("/"))
+                return (API.routes[route], [])
+        return (API.default_route, [])
 
     @staticmethod
     def execute(route: str, *args, **kwargs) -> set:

@@ -4,7 +4,6 @@ Copyright (c) 2021 Philipp Scheer
 
 
 import os
-import sys
 import rsa
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from cryptography.hazmat.primitives import serialization as crypto_serialization
@@ -62,7 +61,6 @@ class Crypto:
     @staticmethod
     def decrypt(encrypted: bytes, private_key: str):
         """Decrypt an encrypted message using the private key"""
-        print("decrypt", encrypted, private_key)
         priv = rsa.PrivateKey.load_pkcs1(private_key, format="PEM")
         return rsa.decrypt(encrypted, priv)
 

@@ -34,12 +34,9 @@ class Client:
         self.pub = public_key
         self.rpub = server_public_key
         self._allow_insecure = False
+        self.ready = json.loads(MQTT.onetime(f"jarvis/client/{self.client_id}/set/public-key", {"public-key": self.pub}))["success"]
         if self.rpub is None:
             self.get_identity()
-
-        @API.route(f"jarvis/client/{self.id}/get/public-key")
-        def getpubkey(d):
-            return self.pub
 
     def request(self, topic: str, message: object, wait_for_response: bool = True):
         """Request a server ressource  
@@ -49,10 +46,11 @@ class Client:
         
         This function might raise an exception if the remote public key is unknown and cannot be retrieved.  
         (The ready check is skipped, if `allow_insecure()` has been called)"""
+        print("rpub", self.rpub)
         proto = Protocol(self.priv, self.pub, self.rpub, auto_rotate=True)
         message = json.loads(proto.encrypt(message, is_json=True))
         return json.loads(proto.decrypt(MQTT.onetime(topic, message, timeout=15 if wait_for_response else 0, send_raw=False, qos=0), ignore_invalid_signature=False, return_raw=False))
-        
+
     def ready(self, _ret: bool = False):
         """Check if this client instance is ready to send encrypted data to the server"""
         if self.rpub in (None, False):

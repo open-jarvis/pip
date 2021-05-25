@@ -49,6 +49,8 @@ class Protocol:
         self.iv = aes_iv
         self.rotate = auto_rotate
 
+        print(self.priv[:20], self.pub[:20], self.rpub, self.key, self.iv, self.rotate)
+
         self.secure = False
         if self.rpub is not None and self.rpub.startswith(Protocol.PUBKEY_START_SEQ):
             self.secure = True
@@ -133,17 +135,18 @@ class Protocol:
         secure = data["secure"]
         if data["version"] == 1:
             if secure:
-                m = b64d(data["m"])
-                s = b64d(data["s"])
-                k = b64d(data["k"])
-                symkey = json.loads(_bytes_to_str(Crypto.decrypt(k, _bytes_to_str(self.priv))))
+                m = b64d(data["data"]["m"])
+                s = b64d(data["data"]["s"])
+                k = b64d(data["data"]["k"])
+                symkey = json.loads( _bytes_to_str( Crypto.decrypt(k, _bytes_to_str(self.priv)) ) )
                 key = b64d(symkey["key"])
                 iv = b64d(symkey["iv"])
                 decrypted_message = Crypto.aes_decrypt(m, key, iv)
-                sign_match = Crypto.verify(decrypted_message, s, self.rpub)
-                if not sign_match:
-                    if not ignore_invalid_signature:
-                        raise Exception("Invalid Signature")
+                sign_match = False
+                if self.rpub is not None:
+                    sign_match = Crypto.verify(decrypted_message, s, self.rpub)
+                if not sign_match and not ignore_invalid_signature:
+                    raise Exception("Invalid Signature")
                 if return_raw:
                     data["data"] = _bytes_to_str(decrypted_message)
                     return data
@@ -167,6 +170,8 @@ def b64d(bytes):
     return base64.b64decode(bytes)
 
 def _bytes_to_str(byte_like_obj: bytes):
+    if isinstance(byte_like_obj, str):
+        return str(byte_like_obj)
     return byte_like_obj.decode("utf-8")
 
 def _str_to_bytes(string: str):
