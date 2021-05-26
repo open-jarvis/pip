@@ -35,7 +35,7 @@ class Crypto:
             crypto_serialization.Encoding.PEM,
             crypto_serialization.PublicFormat.PKCS1
         )
-        return ( private_key, public_key) 
+        return ( str(private_key, "utf-8"), str(public_key, "utf-8") ) 
     
     @staticmethod
     def sign(message: bytes, private_key: str) -> bytes:

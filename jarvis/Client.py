@@ -34,7 +34,8 @@ class Client:
         self.pub = public_key
         self.rpub = server_public_key
         self._allow_insecure = False
-        self.ready = json.loads(MQTT.onetime(f"jarvis/client/{self.client_id}/set/public-key", {"public-key": self.pub}))["success"]
+        print(self.pub)
+        self.ready = self.request(f"jarvis/client/{self.id}/set/public-key", {"public-key": self.pub})["success"]
         if self.rpub is None:
             self.get_identity()
 
