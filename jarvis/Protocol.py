@@ -58,7 +58,7 @@ class Protocol:
         if aes_key is None or aes_iv is None:
             self.rotate_aes()
 
-    def encrypt(self, message: object, is_json: bool = True) -> str:
+    def encrypt(self, message: object, userid: str, is_json: bool = True) -> str:
         """Encrypt a message using a symmetric key, sign the message and encrypt the symmetric key using RSA  
         How does it work?
         1. Check if message is a string. If not, apply `json.dumps`

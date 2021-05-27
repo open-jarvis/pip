@@ -11,6 +11,8 @@ from jarvis.Protocol import Protocol
 from jarvis.API import API
 
 
+MQTT_KEYS_PREFIX = "keyserver"
+
 logger = Logger("Client")
 
 
@@ -34,8 +36,11 @@ class Client:
         self.pub = public_key
         self.rpub = server_public_key
         self._allow_insecure = False
-        print(self.pub)
-        self.ready = self.request(f"jarvis/client/{self.id}/set/public-key", {"public-key": self.pub})["success"]
+        self.pub_accepted = json.loads(
+                                self._insecure_request(
+                                    f"{MQTT_KEYS_PREFIX}/client/{self.id}/set/public-key", 
+                                    {"public-key": self.pub}))
+        self.pub_accepted = self.pub_accepted["success"] if self.pub_accepted else False
         if self.rpub is None:
             self.get_identity()
 
@@ -47,26 +52,26 @@ class Client:
         
         This function might raise an exception if the remote public key is unknown and cannot be retrieved.  
         (The ready check is skipped, if `allow_insecure()` has been called)"""
-        print("rpub", self.rpub)
+        if self.rpub is None and not self._allow_insecure:
+            logger.e("Security", "No remote public key available. Won't send unencrypted message", "")
+            return None
+        if not self.pub_accepted:
+            logger.e("Security", "Remote server did not accept local public key. Won't send unencrypted message", "")
+            return None
         proto = Protocol(self.priv, self.pub, self.rpub, auto_rotate=True)
         message = json.loads(proto.encrypt(message, is_json=True))
-        return json.loads(proto.decrypt(MQTT.onetime(topic, message, timeout=15 if wait_for_response else 0, send_raw=False, qos=0), ignore_invalid_signature=False, return_raw=False))
-
-    def ready(self, _ret: bool = False):
-        """Check if this client instance is ready to send encrypted data to the server"""
-        if self.rpub in (None, False):
-            logger.w("Identity", "Public key of server not known! Won't send unencrypted message!", "")
-            self.get_identity()
-            if not _ret:
-                self.ready(_ret=True)
-            raise Exception("Public key of server not known! Won't send unencrypted message!")
+        return json.loads(
+                    proto.decrypt(
+                        MQTT.onetime(topic, message, userdata=self.id, timeout=15 if wait_for_response else 0, send_raw=False, qos=0), 
+                        ignore_invalid_signature=False, 
+                        return_raw=False))
 
     def get_identity(self):
         """Try to load the public key from the server.  
         If this is not possible, set the public key to false.  
         Unencrypted traffic is not allowed per default"""
         logger.i("Identity", "Trying to get server public key")
-        response = self.request("jarvis/server/get/public-key", {}, wait_for_response=True)
+        response = json.loads(self._insecure_request(f"{MQTT_KEYS_PREFIX}/server/get/public-key", {}, wait_for_response=True))
         if response["success"]:
             self.rpub = response["response"]
 
@@ -76,3 +81,9 @@ class Client:
         The use of this feature is discouraged!"""
         logger.w("Insecure", "Insecure traffic has been turned on! The use of this function is discouraged!")
         self._allow_insecure = True
+
+    def _insecure_request(self, topic: str, message: object, wait_for_response: bool=True):
+        """Create an insecure MQTT Request"""
+        if not topic.startswith(MQTT_KEYS_PREFIX):
+            return False # insecure requests to other endpoints are not allowed
+        return MQTT.onetime(topic, message, userdata=self.id, timeout=15 if wait_for_response else 0)

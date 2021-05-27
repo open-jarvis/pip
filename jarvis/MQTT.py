@@ -89,7 +89,7 @@ class MQTT:
         return True
 
     @staticmethod
-    def onetime(topic: str, message: object, timeout: int = 2, send_raw: bool = False, qos: int = 0) -> str:
+    def onetime(topic: str, message: object, userdata: str = "anonymous", timeout: int = 2, send_raw: bool = False, qos: int = 0) -> str:
         """Send a onetime message and wait for a result.  
         The client should respond to the generated 'reply-to' channel  
         If `timeout` is 0, return immediately and don't wait for a response. Message does not include a `reply-to` channel then  
@@ -98,7 +98,7 @@ class MQTT:
             if timeout != 0:
                 otc = TMP_PREFIX + ''.join(random.choice("0123456789abcdef") for _ in range(ONE_TIME_CHANNEL_LENGTH))
                 message["reply-to"] = otc
-            mqtt = MQTT(userdata="server")
+            mqtt = MQTT(userdata=userdata)
             mqtt.on_message(MQTT._on_msg)
             mqtt.subscribe("#")
             mqtt.publish(topic, message if send_raw else json.dumps(message))
@@ -117,7 +117,6 @@ class MQTT:
             return response
         except Exception as e:
             raise e
-            return None
 
     @staticmethod
     def _on_msg(client: object, userdata: object, message: object):

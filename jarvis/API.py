@@ -76,15 +76,12 @@ class API():
     @staticmethod
     def execute(route: str, *args, **kwargs) -> set:
         """Execute a route with given arguments  
-        Returns a tuple with `(True|False, string result)`  
-        If the function does not return a string, it will be converted to a string using `json.dumps()`"""
+        Returns a tuple with `(True|False, object result)`"""
         try:
             endpoint = API._get(route)
             res = endpoint[0](endpoint[1], *args, **kwargs)
             if isinstance(res, bool):
-                res = { "success": res }
-            if not isinstance(res, str):
-                res = json.dumps(res)
+                return (res, None)
             return (True, res)
         except Exception as e:
             logger.e("Endpoint", f"Exception occured in endpoint {route}", traceback.format_exc())
