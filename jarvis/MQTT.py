@@ -25,6 +25,8 @@ ENCRYPTED_CHANNEL = "jarvis/encrypted"
 (Also unencrypted traffic flows over this channel)"""
 
 
+FORCE_UNENCRYPTED = "jarvis/client/+/set/public-key"
+
 class MQTT:
     """
     An easy-to-use MQTT wrapper for Jarvis applications
@@ -79,7 +81,7 @@ class MQTT:
         self.client.loop_start()
         self.cb = fn
 
-    def publish(self, topic: str, payload: str, qos: int = 0):
+    def publish(self, topic: str, payload: str, qos: int = 0, ignore_invalid_signature: bool = False):
         """
         Publish a MQTT message
         * `topic` specifies the topic (eg. application/lights/on)
@@ -118,10 +120,10 @@ class MQTT:
 
     def _mqtt_cb(self, client, userdata, message):
         payload   = message.payload.decode()
-        payload   = json.loads(self.proto.decrypt(payload, ignore_invalid_signature=False, return_raw=False))
+        payload   = json.loads(self.proto.decrypt(payload, ignore_invalid_signature=True, return_raw=False))
         topic     = payload["t"]
-        payload   = payload["p"]
         client_id = payload["c"]
+        payload   = payload["p"]
         matches   = False
         for sub in self.subscriptions:
             if MQTT.match(sub, topic):
@@ -130,7 +132,7 @@ class MQTT:
             self.cb(topic, payload, client_id)
 
     @staticmethod
-    def onetime(topic: str, message: object, userdata: str = "anonymous", timeout: int = 2, send_raw: bool = False, qos: int = 0) -> str:
+    def onetime(client_id: str, private_key: str, public_key: str, topic: str, message: object, remote_public_key: str = None, userdata: str = "anonymous", timeout: int = 2, send_raw: bool = False, qos: int = 0) -> str:
         """Send a onetime message and wait for a result.  
         The client should respond to the generated 'reply-to' channel  
         If `timeout` is 0, return immediately and don't wait for a response. Message does not include a `reply-to` channel then  
@@ -139,7 +141,7 @@ class MQTT:
             if timeout != 0:
                 otc = TMP_PREFIX + ''.join(random.choice("0123456789abcdef") for _ in range(ONE_TIME_CHANNEL_LENGTH))
                 message["reply-to"] = otc
-            mqtt = MQTT(userdata=userdata)
+            mqtt = MQTT(client_id, private_key=private_key, public_key=public_key, remote_public_key=remote_public_key)
             mqtt.on_message(MQTT._on_msg)
             mqtt.subscribe("#")
             mqtt.publish(topic, message if send_raw else json.dumps(message))
@@ -160,11 +162,9 @@ class MQTT:
             raise e
 
     @staticmethod
-    def _on_msg(client: object, userdata: object, message: object):
-        topic = message.topic
-        data = message.payload.decode()
+    def _on_msg(topic, payload, client_id):
         if topic.startswith(TMP_PREFIX):
-            MQTT._responses[topic] = data
+            MQTT._responses[topic] = payload
 
     @staticmethod
     def match(subscription: str, topic: str) -> bool:

@@ -11,8 +11,6 @@ from jarvis.Protocol import Protocol
 from jarvis.API import API
 
 
-MQTT_KEYS_PREFIX = "keyserver"
-
 logger = Logger("Client")
 
 
@@ -34,13 +32,14 @@ class Client:
         self.id = client_id
         self.priv = private_key
         self.pub = public_key
-        self.rpub = server_public_key
+        self.rpub = None
+        self.rpub = self._endpoint(f"jarvis/server/get/public-key", {})["result"]
+        # when placing the rpub getter before the pub setter, the signature mismatch happens on the server, which is harder to fix but more secure
         self._allow_insecure = False
-        self.pub_accepted = json.loads(
-                                self._insecure_request(
-                                    f"{MQTT_KEYS_PREFIX}/client/{self.id}/set/public-key", 
-                                    {"public-key": self.pub}))
-        self.pub_accepted = self.pub_accepted["success"] if self.pub_accepted else False
+        self.pub_accepted = self._endpoint(f"jarvis/client/{self.id}/set/public-key", {"public-key": self.pub})["success"]
+        # TODO: getting rsa.pkcs1.DecryptionError: Decryption failed
+        # we have the rpub, priv and pub
+        # maybe the server is encrypting using a wrong public key...
         if self.rpub is None:
             self.get_identity()
 
@@ -62,28 +61,9 @@ class Client:
         message = json.loads(proto.encrypt(message, is_json=True))
         return json.loads(
                     proto.decrypt(
-                        MQTT.onetime(topic, message, timeout=15 if wait_for_response else 0, send_raw=False, qos=0), 
+                        MQTT.onetime(self.id, self.priv, self.pub, topic, message, remote_public_key=self.rpub, timeout=15 if wait_for_response else 0, send_raw=False, qos=0), 
                         ignore_invalid_signature=False, 
                         return_raw=False))
 
-    def get_identity(self):
-        """Try to load the public key from the server.  
-        If this is not possible, set the public key to false.  
-        Unencrypted traffic is not allowed per default"""
-        logger.i("Identity", "Trying to get server public key")
-        response = json.loads(self._insecure_request(f"{MQTT_KEYS_PREFIX}/server/get/public-key", {}, wait_for_response=True))
-        if response["success"]:
-            self.rpub = response["response"]
-
-    def allow_insecure(self):
-        """Allow insecure traffic.  
-        **Warning:** Only turn on this feature if you know what you're doing AND you know who the server is AND you know that the server is up  
-        The use of this feature is discouraged!"""
-        logger.w("Insecure", "Insecure traffic has been turned on! The use of this function is discouraged!")
-        self._allow_insecure = True
-
-    def _insecure_request(self, topic: str, message: object, wait_for_response: bool=True):
-        """Create an insecure MQTT Request"""
-        if not topic.startswith(MQTT_KEYS_PREFIX):
-            return False # insecure requests to other endpoints are not allowed
-        return MQTT.onetime(topic, message, userdata=self.id, timeout=15 if wait_for_response else 0)
+    def _endpoint(self, topic: str, message: object, wait_for_response: bool = True, qos=0):
+        return MQTT.onetime(self.id, self.priv, self.pub, topic, message, self.rpub, timeout=15 if wait_for_response else 0, qos=qos)
