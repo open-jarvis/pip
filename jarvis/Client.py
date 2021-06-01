@@ -62,7 +62,7 @@ class Client:
         message = json.loads(proto.encrypt(message, is_json=True))
         return json.loads(
                     proto.decrypt(
-                        MQTT.onetime(topic, message, userdata=self.id, timeout=15 if wait_for_response else 0, send_raw=False, qos=0), 
+                        MQTT.onetime(topic, message, timeout=15 if wait_for_response else 0, send_raw=False, qos=0), 
                         ignore_invalid_signature=False, 
                         return_raw=False))
 

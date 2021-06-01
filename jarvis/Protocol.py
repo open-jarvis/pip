@@ -22,7 +22,7 @@ class Protocol:
     VERSION = 1
     """Jarvis Message Protocol version number"""
 
-    def __init__(self, local_private_key: str, local_public_key: str, remote_public_key: str = None, aes_key: bytes = None, aes_iv: bytes = None, auto_rotate: bool = True) -> None:
+    def __init__(self, local_private_key: str = None, local_public_key: str = None, remote_public_key: str = None, aes_key: bytes = None, aes_iv: bytes = None, auto_rotate: bool = True) -> None:
         """Wrapper class for secure communication  
         
         Usage: 
@@ -49,8 +49,6 @@ class Protocol:
         self.iv = aes_iv
         self.rotate = auto_rotate
 
-        print(self.priv[:20], self.pub[:20], self.rpub, self.key, self.iv, self.rotate)
-
         self.secure = False
         if self.rpub is not None and self.rpub.startswith(Protocol.PUBKEY_START_SEQ):
             self.secure = True
@@ -58,7 +56,7 @@ class Protocol:
         if aes_key is None or aes_iv is None:
             self.rotate_aes()
 
-    def encrypt(self, message: object, userid: str, is_json: bool = True) -> str:
+    def encrypt(self, message: object, is_json: bool = True, do_insecure: bool = False) -> str:
         """Encrypt a message using a symmetric key, sign the message and encrypt the symmetric key using RSA  
         How does it work?
         1. Check if message is a string. If not, apply `json.dumps`
