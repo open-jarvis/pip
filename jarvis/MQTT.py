@@ -6,7 +6,7 @@ Copyright (c) 2021 Philipp Scheer
 import time
 import json
 from typing import Callable
-from jarvis import Logger
+from jarvis.Logger import Logger
 from jarvis.Protocol import Protocol
 from paho.mqtt.client import Client
 from paho.mqtt.matcher import MQTTMatcher
@@ -25,7 +25,11 @@ ENCRYPTED_CHANNEL = "jarvis/encrypted"
 (Also unencrypted traffic flows over this channel)"""
 
 
-FORCE_UNENCRYPTED = "jarvis/client/+/set/public-key"
+INVALID_SIGNATURE_ALLOWED = "jarvis/client/+/set/public-key"
+
+
+logger = Logger("MQTT")
+
 
 class MQTT:
     """
@@ -64,7 +68,7 @@ class MQTT:
             self.client.subscribe(ENCRYPTED_CHANNEL)
         except Exception:
             print(traceback.format_exc())
-            Logger.Logger.e1("MQTT", "Refused", "Connection refused, mosquitto not installed or not running", traceback.format_exc())
+            logger.e("Refused", "Connection refused, mosquitto not installed or not running", traceback.format_exc())
 
     def on_connect(self, fn: Callable):
         """
@@ -119,11 +123,26 @@ class MQTT:
         self.proto = Protocol(self.priv, self.pub, self.rpub, auto_rotate=True)
 
     def _mqtt_cb(self, client, userdata, message):
-        payload   = message.payload.decode()
-        payload   = json.loads(self.proto.decrypt(payload, ignore_invalid_signature=True, return_raw=False))
+        orig_payload = message.payload.decode()
+        payload      = message.payload.decode()
+        try:
+            payload   = json.loads(self.proto.decrypt(payload, ignore_invalid_signature=True, return_raw=False)) # we ignore the invalid signature for now, but check if later on!
+        except Protocol.UnauthorizedException:
+            # this message is not for us...
+            return
+        except Protocol.SignatureMismatch:
+            # this is weird... ignore_invalid_signature should be True!
+            pass
         topic     = payload["t"]
         client_id = payload["c"]
         payload   = payload["p"]
+        if not MQTT.match(INVALID_SIGNATURE_ALLOWED, topic):
+            valid_signature = self.proto.check_signature(orig_payload)
+            if not valid_signature:
+                # a rogue server is sending messages
+                # TODO: log message
+                logger.w("Signature", f"A signature mismatch occured! Public key is '{self.pub}', Remote public key is '{self.rpub}'")
+                return
         matches   = False
         for sub in self.subscriptions:
             if MQTT.match(sub, topic):

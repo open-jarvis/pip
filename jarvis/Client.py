@@ -33,37 +33,32 @@ class Client:
         self.priv = private_key
         self.pub = public_key
         self.rpub = None
-        self.rpub = self._endpoint(f"jarvis/server/get/public-key", {})["result"]
+        self.rpub = self.request(f"jarvis/server/get/public-key", {})["result"]
         # when placing the rpub getter before the pub setter, the signature mismatch happens on the server, which is harder to fix but more secure
-        self._allow_insecure = False
-        self.pub_accepted = self._endpoint(f"jarvis/client/{self.id}/set/public-key", {"public-key": self.pub})["success"]
-        # TODO: getting rsa.pkcs1.DecryptionError: Decryption failed
-        # we have the rpub, priv and pub
-        # maybe the server is encrypting using a wrong public key...
-        if self.rpub is None:
-            self.get_identity()
-
-    def request(self, topic: str, message: object, wait_for_response: bool = True):
-        """Request a server ressource  
-        Specify the `topic` and `message` MQTT parameters.
-        `topic` must be a string that specifies a server ressource and `message` must be an object (NOT a JSON string!)  
-        If `wait_for_response` is set to `False`, just send out the request and don't wait for a response  
-        
-        This function might raise an exception if the remote public key is unknown and cannot be retrieved.  
-        (The ready check is skipped, if `allow_insecure()` has been called)"""
-        if self.rpub is None and not self._allow_insecure:
-            logger.e("Security", "No remote public key available. Won't send unencrypted message", "")
-            return None
+        self.pub_accepted = self.send_identity()
         if not self.pub_accepted:
-            logger.e("Security", "Remote server did not accept local public key. Won't send unencrypted message", "")
-            return None
-        proto = Protocol(self.priv, self.pub, self.rpub, auto_rotate=True)
-        message = json.loads(proto.encrypt(message, is_json=True))
-        return json.loads(
-                    proto.decrypt(
-                        MQTT.onetime(self.id, self.priv, self.pub, topic, message, remote_public_key=self.rpub, timeout=15 if wait_for_response else 0, send_raw=False, qos=0), 
-                        ignore_invalid_signature=False, 
-                        return_raw=False))
+            raise Exception("Server did not acknowledge public key")
+        # How the protocol works:
+        # P ... plaintext traffic, E ... encrypted traffic
+        # P < jarvis/server/get/public-key     : reply-to
+        # P > reply-to                         : public key
+        # E < jarvis/client/id/set/public-key  : public-key, reply-to
+        # E > reply-to                         : ok ? True | False
 
-    def _endpoint(self, topic: str, message: object, wait_for_response: bool = True, qos=0):
+    def request(self, topic: str, message: object, wait_for_response: bool = True, qos=0):
         return MQTT.onetime(self.id, self.priv, self.pub, topic, message, self.rpub, timeout=15 if wait_for_response else 0, qos=qos)
+
+    def send_identity(self, public_key: str = None):
+        if public_key is None:
+            public_key = self.pub
+        accepted = False
+        try:
+            accepted = self.request(f"jarvis/client/{self.id}/set/public-key", {"public-key": public_key}).get("success", False)
+        finally:
+            return accepted
+
+    def update_keys(self, new_private_key: str, new_public_key: str):
+        accepted = self.send_identity(new_public_key)
+        if accepted:
+            self.priv, self.pub = new_private_key, new_public_key
+        return accepted

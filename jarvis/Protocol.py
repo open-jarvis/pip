@@ -3,6 +3,7 @@ Copyright (c) 2021 Philipp Scheer
 """
 
 
+import rsa
 import json
 import base64
 from jarvis.Logger import Logger
@@ -12,9 +13,20 @@ from jarvis.Crypto import Crypto
 logger = Logger("Protocol")
 
 
+class SignatureMismatch(Exception):
+    """An exception class to handle signature mismatches"""
+    pass
+
+
 class Protocol:
     """Specifications of the Jarvis Message Protocol which is used to transfer messages in a secure way.  
     This class wraps the [`Crypto`](../classes/Crypto) class"""
+
+    UnauthorizedException = rsa.pkcs1.DecryptionError
+    """An exception that is thrown if a message is not for our eyes"""
+
+    SignatureMismatch = SignatureMismatch
+    """An exception for messages with a wrong signature"""
 
     PUBKEY_START_SEQ = "-----BEGIN RSA PUBLIC KEY-----"
     """The starting sequence of a public RSA key"""
@@ -144,7 +156,7 @@ class Protocol:
                 if self.rpub is not None:
                     sign_match = Crypto.verify(decrypted_message, s, self.rpub)
                 if not sign_match and not ignore_invalid_signature:
-                    raise Exception("Invalid Signature")
+                    raise Protocol.SignatureMismatch("Invalid Signature")
                 if return_raw:
                     data["data"] = _bytes_to_str(decrypted_message)
                     return data
@@ -158,6 +170,13 @@ class Protocol:
         """Generate a new AES key and initialization vector.  
         Call this function as often as possible, changing AES keys does not break communication"""
         self.key, self.iv = Crypto.symmetric()
+
+    def check_signature(self, payload: str):
+        try:
+            resp = self.decrypt(payload, ignore_invalid_signature=False, return_raw=True)
+            return True
+        except SignatureMismatch as e:
+            return False
 
 def b64e(bytes):
     """Base64 encode bytes"""
