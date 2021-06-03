@@ -140,7 +140,7 @@ class MQTT:
             valid_signature = self.proto.check_signature(orig_payload)
             if not valid_signature:
                 # a rogue server is sending messages
-                # TODO: log message
+                # or a misconfiguration happened
                 logger.w("Signature", f"A signature mismatch occured! Public key is '{self.pub}', Remote public key is '{self.rpub}'")
                 return
         matches   = False
@@ -149,6 +149,10 @@ class MQTT:
                 matches = True
         if matches and self.cb is not None:
             self.cb(topic, payload, client_id)
+
+    def request(self, topic: str, message: object, timeout: int = 20, qos: int = 0):
+        """Request a MQTT ressource"""
+        return MQTT.onetime(self.cid, self.priv, self.pub, topic, message, remote_public_key=self.rpub, timeout=timeout, qos=qos)
 
     @staticmethod
     def onetime(client_id: str, private_key: str, public_key: str, topic: str, message: object, remote_public_key: str = None, userdata: str = "anonymous", timeout: int = 2, send_raw: bool = False, qos: int = 0) -> str:
@@ -182,6 +186,7 @@ class MQTT:
 
     @staticmethod
     def _on_msg(topic, payload, client_id):
+        print("_on_msg", topic, payload)
         if topic.startswith(TMP_PREFIX):
             MQTT._responses[topic] = payload
 

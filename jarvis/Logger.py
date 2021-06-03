@@ -81,9 +81,9 @@ class Logger:
             return
 
         if to_console:
-            print("{} - {}/{} - {}".format(str(datetime.now()), pre, referrer +
-                                           (" " * (12-len(referrer))), message))
+            print("{} - {}/{} - {}".format(str(datetime.now()), pre, referrer + (" " * (12-len(referrer))), message))
 
+        return
         if database_entry:
             obj = {
                 "timestamp": time.time(),

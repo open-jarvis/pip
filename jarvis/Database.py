@@ -96,10 +96,8 @@ class Database:
 
 
 class Table:
-    """
-    Represents a Table in a Database  
-    This class should never be called by the user, only by the `Database` class
-    """
+    """Represents a Table in a Database  
+    This class should never be called by the user, only by the `Database` class"""
     def __init__(self, server: couchdb2.Server, table_name: str) -> None:
         """
         Initialize the table  
@@ -115,16 +113,12 @@ class Table:
 
     @benchmark
     def get(self, id: str) -> dict:
-        """
-        Get a document from the current table by `id`
-        """
+        """Get a document from the current table by `id`"""
         return self.table.get(id)
 
     @benchmark
     def all(self) -> list:
-        """
-        Return all documents from the current table
-        """
+        """Return all documents from the current table"""
         all_list = DocumentList(self)
         for doc in self.table:
             all_list.add(dict(doc))
@@ -132,9 +126,7 @@ class Table:
 
     @benchmark
     def insert(self, document: dict) -> any:
-        """
-        Insert a document in the current table
-        """
+        """Insert a document in the current table"""
         try:
             self.table.put(document)
             return True
@@ -143,12 +135,10 @@ class Table:
 
     @benchmark
     def filter(self, filter: any = {}) -> list:
-        """
-        THE USE OF THIS FUNCTION IS DISCOURAGED! USE FIND INSTEAD!
+        """THE USE OF THIS FUNCTION IS DISCOURAGED! USE FIND INSTEAD!
         Filters a table  
         `filter` can be either a lamba or object  
-        Returns a list of all documents that match
-        """
+        Returns a list of all documents that match"""
         doc_list = DocumentList(self)
         if (isinstance(filter, types.LambdaType)):
             for document in self.all():
@@ -165,32 +155,24 @@ class Table:
 
     @benchmark
     def find(self, filter: dict = {}) -> list:
-        """
-        Find documents by a <a href="https://pouchdb.com/guides/mango-queries.html">Mango query</a>
-        """
+        """Find documents by a <a href="https://pouchdb.com/guides/mango-queries.html">Mango query</a>"""
         doc_list = DocumentList(self)
         doc_list.document_list = self.table.find(filter)["docs"]
         return doc_list
 
     @benchmark
     def delete(self, document):
-        """
-        Delete a document from the table
-        """
+        """Delete a document from the table"""
         self.table.purge([document])
 
     @benchmark
     def drop(self):
-        """
-        Drop the current table
-        """
+        """Drop the current table"""
         return self.table.destroy()
 
     @property
     def size(self):
-        """
-        Return the size of the current table in bytes
-        """
+        """Return the size of the current table in bytes"""
         info = dict(self.table.get_info())
         return info["sizes"]["active"]
     
@@ -200,9 +182,7 @@ class Table:
         return info["doc_count"]
 
     def __str__(self) -> str:
-        """
-        Returns string representation of the current table
-        """
+        """Returns string representation of the current table"""
         if not hasattr(self, "name"):
             self.name = "ERROR"
         return f"jarvis.Database.Table({self.name})"
