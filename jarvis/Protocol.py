@@ -69,7 +69,7 @@ class Protocol:
             self.rotate_aes()
 
     def encrypt(self, message: object, is_json: bool = True) -> str:
-        """Encrypt a message using a symmetric key, sign the message and encrypt the symmetric key using RSA  
+        """Encrypt a message using a symmetric key, sign the message and encrypt the symmetric key using RSA         
         How does it work?
         1. Check if message is a string. If not, apply `json.dumps`
         2. Convert message to bytes
@@ -81,6 +81,17 @@ class Protocol:
             * No: unencrypted messages
                 1. Store the raw data
         4. All data is encoded using base64 and packed into a JSON object
+
+        Returned object:
+        {
+            "version": 1,
+            "secure": True,
+            "data": {
+                "m": b64: AES encrypted payload
+                "s": b64: RSA signature
+                "k": b64: RSA encrypted symmetric Key
+            }
+        }
 
         Returns:
         ```python

@@ -49,7 +49,7 @@ class Crypto:
         pub = rsa.PublicKey.load_pkcs1(public_key, format="PEM")
         try:
             return True if rsa.verify(message, signature, pub) else False
-        except Exception:
+        except Exception as e:
             return False
 
     @staticmethod
@@ -57,7 +57,7 @@ class Crypto:
         """Take a string `message` and a PEM `public_key` and return an encrypted message"""
         pub = rsa.PublicKey.load_pkcs1(public_key, format="PEM")
         return rsa.encrypt(message, pub)
-    
+
     @staticmethod
     def decrypt(encrypted: bytes, private_key: str):
         """Decrypt an encrypted message using the private key"""
