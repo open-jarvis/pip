@@ -61,11 +61,15 @@ class MQTT:
         self.proto = Protocol(self.priv, self.pub, self.rpub, auto_rotate=True)
 
         self.client = Client('jarvis|' + ''.join(random.choices("0123456abcdef", k=16)), userdata=userdata)
+        # self.clientWS = Client('jarvis|' + ''.join(random.choices("0123456abcdef", k=16)), userdata=userdata)
 
         try:
             self.client.connect(self.host, self.port)
             self.client.on_message = self._mqtt_cb
             self.client.subscribe(ENCRYPTED_CHANNEL)
+            # self.clientWS.connect(self.host, self.port)
+            # self.clientWS.on_message = self._mqtt_cb
+            # self.clientWS.subscribe(ENCRYPTED_CHANNEL)
         except Exception:
             print(traceback.format_exc())
             logger.e("Refused", "Connection refused, mosquitto not installed or not running", traceback.format_exc())
@@ -76,6 +80,7 @@ class MQTT:
         * `fn` is a callable (usually a function) with the following arguments: [client, userdata, flags, rc]
         """
         self.client.on_connect = fn
+        # self.clientWS.on_connect = fn
 
     def on_message(self, fn: Callable):
         """
@@ -83,6 +88,7 @@ class MQTT:
         * `fn` is a callable (usually a function) with the following arguments: [client, userdata, message]
         """
         self.client.loop_start()
+        # self.clientWS.loop_start()
         self.cb = fn
 
     def publish(self, topic: str, payload: str, qos: int = 0, ignore_invalid_signature: bool = False):
@@ -99,6 +105,7 @@ class MQTT:
         encrypted_topic = ENCRYPTED_CHANNEL
         encrypted_payload = self.proto.encrypt(data, is_json=True)
         return self.client.publish(encrypted_topic, encrypted_payload, qos=qos)
+        # return self.clientWS.publish(encrypted_topic, encrypted_payload, qos=qos)
 
     def subscribe(self, topic: str):
         """
@@ -115,6 +122,7 @@ class MQTT:
         Using disconnect() will not result in a will message being sent by the broker.
         """
         self.client.disconnect()
+        # self.clientWS.disconnect()
         return True
 
     def update_public_key(self, public_key: str):
@@ -126,16 +134,23 @@ class MQTT:
         orig_payload = message.payload.decode()
         payload      = message.payload.decode()
         try:
+            print("DEBUG", "PAYLOAD BEFORE", payload)
             payload   = json.loads(self.proto.decrypt(payload, ignore_invalid_signature=True, return_raw=False)) # we ignore the invalid signature for now, but check if later on!
+            print("DEBUG", "PAYLOAD AFTER", payload)
         except Protocol.UnauthorizedException:
+            print("DEBUG", "UNAUTHORIZED")
             # this message is not for us...
             return
         except Protocol.SignatureMismatch:
+            print("DEBUG", "SIGNATURE MISMATCH")
             # this is weird... ignore_invalid_signature should be True!
             pass
+        except Exception:
+            print("DEBUG", traceback.format_exc())
         topic     = payload["t"]
         client_id = payload["c"]
         payload   = payload["p"]
+        print("DEBUG", topic, payload, client_id)
         if not MQTT.match(INVALID_SIGNATURE_ALLOWED, topic):
             valid_signature = self.proto.check_signature(orig_payload)
             if not valid_signature:
@@ -147,7 +162,9 @@ class MQTT:
         for sub in self.subscriptions:
             if MQTT.match(sub, topic):
                 matches = True
+        print("DEBUG", "MATCHES", matches)
         if matches and self.cb is not None:
+            print("DEBUG", "EXEC CB")
             self.cb(topic, payload, client_id)
 
     def request(self, topic: str, message: object, timeout: int = 20, qos: int = 0):
