@@ -3,6 +3,7 @@ Copyright (c) 2021 Philipp Scheer
 """
 
 
+import traceback
 import rsa
 import json
 import base64
@@ -159,7 +160,12 @@ class Protocol:
                 m = b64d(data["data"]["m"])
                 s = b64d(data["data"]["s"])
                 k = b64d(data["data"]["k"])
-                symkey = json.loads( _bytes_to_str( Crypto.decrypt(k, self.priv) ) )
+                try:
+                    symkey = json.loads( _bytes_to_str( Crypto.decrypt(k, self.priv) ) )
+                except Exception:
+                    # maybe message sent by own server
+                    # logger.e("Decryption", "Failed to decrypt AES key", traceback.format_exc())
+                    pass
                 key = b64d(symkey["key"])
                 iv = b64d(symkey["iv"])
                 decrypted_message = Crypto.aes_decrypt(m, key, iv)

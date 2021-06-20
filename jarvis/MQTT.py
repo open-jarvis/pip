@@ -134,23 +134,26 @@ class MQTT:
         orig_payload = message.payload.decode()
         payload      = message.payload.decode()
         try:
-            print("DEBUG", "PAYLOAD BEFORE", payload)
-            payload   = json.loads(self.proto.decrypt(payload, ignore_invalid_signature=True, return_raw=False)) # we ignore the invalid signature for now, but check if later on!
-            print("DEBUG", "PAYLOAD AFTER", payload)
+            decrypted = self.proto.decrypt(payload, ignore_invalid_signature=True, return_raw=False)
+            print("DEBUG", "DECR", decrypted.encode("utf-8"))
+            print("DEBUG", "DECR", f"'{decrypted}'")
+            if decrypted[-1] in '"]}':
+                payload   = json.loads(decrypted) # we ignore the invalid signature for now, but check it later on!
+            else:
+                payload   = json.loads(decrypted.rstrip(decrypted[-1])) # we ignore the invalid signature for now, but check it later on!
         except Protocol.UnauthorizedException:
-            print("DEBUG", "UNAUTHORIZED")
+            print("UNAUTHORIZED")
             # this message is not for us...
             return
         except Protocol.SignatureMismatch:
-            print("DEBUG", "SIGNATURE MISMATCH")
             # this is weird... ignore_invalid_signature should be True!
             pass
         except Exception:
-            print("DEBUG", traceback.format_exc())
+            print("DEBUG", "EXC", traceback.format_exc())
+        print("DEBUG", "PAYLOAD AFTER", payload)
         topic     = payload["t"]
         client_id = payload["c"]
         payload   = payload["p"]
-        print("DEBUG", topic, payload, client_id)
         if not MQTT.match(INVALID_SIGNATURE_ALLOWED, topic):
             valid_signature = self.proto.check_signature(orig_payload)
             if not valid_signature:
@@ -162,9 +165,7 @@ class MQTT:
         for sub in self.subscriptions:
             if MQTT.match(sub, topic):
                 matches = True
-        print("DEBUG", "MATCHES", matches)
         if matches and self.cb is not None:
-            print("DEBUG", "EXEC CB")
             self.cb(topic, payload, client_id)
 
     def request(self, topic: str, message: object, timeout: int = 20, qos: int = 0):
@@ -203,7 +204,6 @@ class MQTT:
 
     @staticmethod
     def _on_msg(topic, payload, client_id):
-        print("_on_msg", topic, payload)
         if topic.startswith(TMP_PREFIX):
             MQTT._responses[topic] = payload
 
