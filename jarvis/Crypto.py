@@ -9,6 +9,7 @@ from cryptography.hazmat.backends import default_backend as crypto_default_backe
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa as crypto_rsa
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives import padding
 
 
 class Crypto:
@@ -80,15 +81,22 @@ class Crypto:
     @staticmethod
     def aes_encrypt(message: bytes, key: bytes, iv: bytes):
         """Encrypt a `message` with AES using a given `key` and initialization vector `iv`"""
+        # padder = padding.PKCS7(128).padder()
+        padder = padding.PKCS7(128).padder()
         cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
-        while not len(message) % len(key) == 0:
-            message += b'\x00'
+        # while not len(message) % len(key) == 0:
+        #     message += b'\x00'
+        padded_data = padder.update(message)
+        padded_data += padder.finalize()
         encryptor = cipher.encryptor()
-        return encryptor.update(message) + encryptor.finalize()
+        return encryptor.update(padded_data) + encryptor.finalize()
     
     @staticmethod
     def aes_decrypt(encrypted: bytes, key: bytes, iv: bytes) -> bytes:
         """Decrypt an `encrypted` message with AES using a given `key` and initialization vector `iv`"""
         cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
         decryptor = cipher.decryptor()
-        return (decryptor.update(encrypted) + decryptor.finalize()).rstrip(b'\x00')
+        data = decryptor.update(encrypted) + decryptor.finalize()
+        unpadder = padding.PKCS7(128).unpadder()
+        unpadded_data = unpadder.update(data)
+        return unpadded_data + unpadder.finalize()

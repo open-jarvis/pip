@@ -18,6 +18,10 @@ class SignatureMismatch(Exception):
     """An exception class to handle signature mismatches"""
     pass
 
+class OwnMessage(Exception):
+    """An exception class to handle decryption errors on self sent messages"""
+    pass
+
 
 class Protocol:
     """Specifications of the Jarvis Message Protocol which is used to transfer messages in a secure way.  
@@ -28,6 +32,8 @@ class Protocol:
 
     SignatureMismatch = SignatureMismatch
     """An exception for messages with a wrong signature"""
+
+    OwnMessage = OwnMessage
 
     PUBKEY_START_SEQ = "-----BEGIN RSA PUBLIC KEY-----"
     """The starting sequence of a public RSA key"""
@@ -165,7 +171,7 @@ class Protocol:
                 except Exception:
                     # maybe message sent by own server
                     # logger.e("Decryption", "Failed to decrypt AES key", traceback.format_exc())
-                    pass
+                    raise Protocol.OwnMessage("Trying to decrypt self sent message")
                 key = b64d(symkey["key"])
                 iv = b64d(symkey["iv"])
                 decrypted_message = Crypto.aes_decrypt(m, key, iv)

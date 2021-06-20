@@ -148,8 +148,10 @@ class MQTT:
         except Protocol.SignatureMismatch:
             # this is weird... ignore_invalid_signature should be True!
             pass
-        except Exception:
-            print("DEBUG", "EXC", traceback.format_exc())
+        except Protocol.OwnMessage:
+            # trying to decrypt own message
+            # IMPORTANT: maybe some real errors occur too in here...
+            return
         print("DEBUG", "PAYLOAD AFTER", payload)
         topic     = payload["t"]
         client_id = payload["c"]
