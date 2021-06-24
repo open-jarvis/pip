@@ -135,14 +135,11 @@ class MQTT:
         payload      = message.payload.decode()
         try:
             decrypted = self.proto.decrypt(payload, ignore_invalid_signature=True, return_raw=False)
-            print("DEBUG", "DECR", decrypted.encode("utf-8"))
-            print("DEBUG", "DECR", f"'{decrypted}'")
             if decrypted[-1] in '"]}':
                 payload   = json.loads(decrypted) # we ignore the invalid signature for now, but check it later on!
             else:
                 payload   = json.loads(decrypted.rstrip(decrypted[-1])) # we ignore the invalid signature for now, but check it later on!
         except Protocol.UnauthorizedException:
-            print("UNAUTHORIZED")
             # this message is not for us...
             return
         except Protocol.SignatureMismatch:
@@ -152,7 +149,6 @@ class MQTT:
             # trying to decrypt own message
             # IMPORTANT: maybe some real errors occur too in here...
             return
-        print("DEBUG", "PAYLOAD AFTER", payload)
         topic     = payload["t"]
         client_id = payload["c"]
         payload   = payload["p"]

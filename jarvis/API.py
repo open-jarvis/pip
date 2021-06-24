@@ -6,7 +6,7 @@ Copyright (c) 2021 Philipp Scheer
 import re
 import os
 import sys
-import json
+import time
 import inspect
 import traceback
 from collections import OrderedDict
@@ -77,18 +77,21 @@ class API():
     def execute(route: str, *args, **kwargs) -> set:
         """Execute a route with given arguments  
         Returns a tuple with `(True|False, object result)`"""
+        start = time.time()
         try:
             endpoint = API._get(route)
             res = endpoint[0](endpoint[1], *args, **kwargs)
+            logger.d("Timing", f"Executing route '{route}' took {time.time()-start :.2f}s")
             if isinstance(res, bool):
                 return (res, None)
-            return (True, res)
+            return (True, res)    
         except Exception as e:
             logger.e("Endpoint", f"Exception occured in endpoint {route}", traceback.format_exc())
+            logger.d("Timing",   f"Executing route '{route}' took {time.time()-start :.2f}s")
             return (False, str(e))
 
     @staticmethod
-    def default_route():
+    def default_route(args, client, data):
         """This is the default route and gets handled if no function was found for route"""
         raise Exception("Endpoint not found")
 

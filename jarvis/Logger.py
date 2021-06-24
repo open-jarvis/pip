@@ -43,6 +43,10 @@ class Logger:
         """Turn console logging off"""
         self.to_console = False
 
+    def d(self, tag: str, message: str, to_db: bool = True):
+        """Log an `debug` message"""
+        Logger.log(self.referrer, "D", tag, message, to_console=self.to_console, database_entry=to_db)
+
     def i(self, tag: str, message: str, to_db: bool = True):
         """Log an `info` message"""
         Logger.log(self.referrer, "I", tag, message, to_console=self.to_console, database_entry=to_db)
@@ -100,6 +104,11 @@ class Logger:
                 Database.Database(exit_on_fail=False).table("logs").insert(obj)
             except Database.Database.Exception:
                 Logger.e1("Logger", "DB", "Failed to insert log data, database not running", traceback.format_exc(), database_entry=False)
+
+    @staticmethod
+    def d1(referrer: str, tag: str, message: object, database_entry: bool = True):
+        """Create a one-time debug log message"""
+        Logger.log(referrer, "D", tag, message, to_console=True, database_entry=database_entry)
 
     @staticmethod
     def i1(referrer: str, tag: str, message: object, database_entry: bool = True):

@@ -3,10 +3,11 @@ Copyright (c) 2021 Philipp Scheer
 """
 
 
-import traceback
 import rsa
+import time
 import json
 import base64
+import traceback
 from jarvis.Logger import Logger
 from jarvis.Crypto import Crypto
 
@@ -116,6 +117,7 @@ class Protocol:
             }
         }
         ```"""
+        start = time.time()
         if self.rotate:
             self.rotate_aes()
         result = {
@@ -138,6 +140,7 @@ class Protocol:
             }
         else:
             result["data"] = message
+        logger.d("Timing", f"Encrypting data with length {len(message)} took {time.time()-start :.2f}s")
         return json.dumps(result)
 
     def decrypt(self, data: str, ignore_invalid_signature: bool = False, return_raw: bool = False) -> str:
@@ -154,6 +157,8 @@ class Protocol:
                 1. Load the unencrypted message data
         3. Return the transmitted data
         """
+        start = time.time()
+        dlen = len(data)
         data = json.loads(data)
         if "version" not in data:
             logger.e("Unknown", "Unknown protocol, no version tag present, skipping message", "")
@@ -182,10 +187,13 @@ class Protocol:
                     raise Protocol.SignatureMismatch("Invalid Signature")
                 if return_raw:
                     data["data"] = _bytes_to_str(decrypted_message)
+                    logger.d("Timing", f"Decrypting data with length {dlen} took {time.time()-start :.2f}s")
                     return data
                 else:
+                    logger.d("Timing", f"Decrypting data with length {dlen} took {time.time()-start :.2f}s")
                     return _bytes_to_str(decrypted_message)
             else:
+                logger.d("Timing", f"Decrypting data with length {dlen} took {time.time()-start :.2f}s")
                 return data if return_raw else json.dumps(data["data"])
         logger.e("Version", "Version mismatch: Failed to decrypt message", "")
 
