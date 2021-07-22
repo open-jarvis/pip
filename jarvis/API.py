@@ -63,15 +63,19 @@ class API():
 
     @staticmethod
     def _get(route: str):
-        """Get a route from array, else return the default route"""
+        """Get routes from array, else return the default route"""
+        routes = []
         for subscription in API.routes:
             if MQTT.match(subscription, route):
                 reg = subscription.replace("+", "([^/]+)").replace("#", "([^ ]+)")
                 res = re.search(reg, route)
                 if res:
-                    return (API.routes[subscription], list(res.groups()))
-                return (API.routes[subscription], [])
-        return (API.default_route, [])
+                    routes.append((API.routes[subscription], list(res.groups())))
+                else:
+                    routes.append((API.routes[subscription], []))
+        if len(routes) == 0:
+            return [(API.default_route, [])]
+        return routes
 
     @staticmethod
     def execute(route: str, *args, **kwargs) -> set:
@@ -79,12 +83,16 @@ class API():
         Returns a tuple with `(True|False, object result)`"""
         start = time.time()
         try:
-            endpoint = API._get(route)
-            res = endpoint[0](endpoint[1], *args, **kwargs)
-            logger.d("Timing", f"Executing route '{route}' took {time.time()-start :.2f}s")
+            endpoints = API._get(route)
+            res = True
+            for endpoint in endpoints:
+                res_endpoint = endpoint[0](endpoint[1], *args, **kwargs)
+                if res_endpoint is not None:
+                    res = res_endpoint
+                logger.d("Timing", f"Executing route '{route}' took {time.time()-start :.2f}s")
             if isinstance(res, bool):
                 return (res, None)
-            return (True, res)    
+            return (True, res)
         except Exception as e:
             logger.e("Endpoint", f"Exception occured in endpoint {route}", traceback.format_exc())
             logger.d("Timing",   f"Executing route '{route}' took {time.time()-start :.2f}s")
