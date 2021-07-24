@@ -51,7 +51,7 @@ class Database:
         try:
             self.server = couchdb2.Server(f"http://{self.host}:{self.port}/", username=self.user, password=password)
         except Database.Exception:
-            from jarvis import Logger
+            from jarvis.Logger import Logger
             Logger.e1("Database", "Refused", "Connection refused, database not running", traceback.format_exc(), database_entry=False)
             if exit_on_fail:
                 exit(1)

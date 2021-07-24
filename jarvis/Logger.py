@@ -9,19 +9,15 @@ from jarvis import Database
 
 
 class Logger:
-    """
-    A Logger class that logs to console and to Database
-    """
+    """A Logger class that logs to console and to Database"""
 
     _pause = False
     """Pause logging"""
 
     def __init__(self, referrer):
-        """
-        Initialize the logger
+        """Initialize the logger
         * `referrer` specifies the code piece that runs the Logger class.  
-            This could be the name of the Python file or another descriptive name
-        """
+            This could be the name of the Python file or another descriptive name"""
         self.referrer = referrer
         self.to_console = True
 
