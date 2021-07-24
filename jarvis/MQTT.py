@@ -25,7 +25,7 @@ ENCRYPTED_CHANNEL = "jarvis/encrypted"
 (Also unencrypted traffic flows over this channel)"""
 
 
-INVALID_SIGNATURE_ALLOWED = "jarvis/client/+/set/public-key"
+INVALID_SIGNATURE_ALLOWED = "jarvis/client/set/public-key"
 
 
 logger = Logger("MQTT")
