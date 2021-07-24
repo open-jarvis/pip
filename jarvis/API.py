@@ -34,11 +34,6 @@ class API():
     @API.route("jarvis/exception")
     def serve_test_exception(args, data):
         raise Exception("This is a test") # will get caught by API and converted to 'This is a test'
-    
-    @API.route("jarvis/client/+/ping")
-    def serve_client_ping(args, data):
-        client_id = args[0]
-        return f"client {client_id} is up!"
     ```
 
     If you want to execute an API endpoint, use:
@@ -64,18 +59,15 @@ class API():
     @staticmethod
     def _get(route: str):
         """Get routes from array, else return the default route"""
-        routes = []
         for subscription in API.routes:
             if MQTT.match(subscription, route):
                 reg = subscription.replace("+", "([^/]+)").replace("#", "([^ ]+)")
                 res = re.search(reg, route)
                 if res:
-                    routes.append((API.routes[subscription], list(res.groups())))
+                    return (API.routes[subscription], list(res.groups()))
                 else:
-                    routes.append((API.routes[subscription], []))
-        if len(routes) == 0:
-            return [(API.default_route, [])]
-        return routes
+                    return (API.routes[subscription], [])
+        return (API.default_route, [])
 
     @staticmethod
     def execute(route: str, *args, **kwargs) -> set:
@@ -83,13 +75,9 @@ class API():
         Returns a tuple with `(True|False, object result)`"""
         start = time.time()
         try:
-            endpoints = API._get(route)
-            res = True
-            for endpoint in endpoints:
-                res_endpoint = endpoint[0](endpoint[1], *args, **kwargs)
-                if res_endpoint is not None:
-                    res = res_endpoint
-                logger.d("Timing", f"Executing route '{route}' took {time.time()-start :.2f}s")
+            endpoint = API._get(route)
+            res = endpoint[0](endpoint[1], *args, **kwargs)
+            logger.d("Timing", f"Executing route '{route}' took {time.time()-start :.2f}s")
             if isinstance(res, bool):
                 return (res, None)
             return (True, res)
@@ -99,7 +87,7 @@ class API():
             return (False, str(e))
 
     @staticmethod
-    def default_route(args, client, data):
+    def default_route(args, device, data):
         """This is the default route and gets handled if no function was found for route"""
         raise Exception("Endpoint not found")
 
