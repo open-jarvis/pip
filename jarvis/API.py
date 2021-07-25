@@ -23,15 +23,15 @@ class API():
 
     Example usage:  
     ```python
-    @API.route("jarvis/ping")
+    @API.route("ping")
     def serve_ping(*args, **kwargs):
         return "pong"
     
-    @API.route("jarvis/status")
+    @API.route("status")
     def serve_status(args, data, use_json=True):
         return { "status": True } if use_json else True
     
-    @API.route("jarvis/exception")
+    @API.route("exception")
     def serve_test_exception(args, data):
         raise Exception("This is a test") # will get caught by API and converted to 'This is a test'
     ```

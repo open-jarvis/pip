@@ -3,6 +3,8 @@ Copyright (c) 2021 Philipp Scheer
 """
 
 
+# TODO: move from mqtt to websockets
+
 from jarvis.MQTT import MQTT
 
 
