@@ -77,7 +77,7 @@ class API():
         try:
             endpoint = API._get(route)
             res = endpoint[0](endpoint[1], *args, **kwargs)
-            logger.d("Timing", f"Executing route '{route}' took {time.time()-start :.2f}s")
+            # logger.d("Timing", f"Executing route '{route}' took {time.time()-start :.2f}s")
             if isinstance(res, bool):
                 return (res, None)
             return (True, res)
@@ -87,7 +87,7 @@ class API():
             return (False, str(e))
 
     @staticmethod
-    def default_route(args, device, data):
+    def default_route(*args, **kwargs):
         """This is the default route and gets handled if no function was found for route"""
         raise Exception("Endpoint not found")
 

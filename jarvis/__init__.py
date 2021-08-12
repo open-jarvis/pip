@@ -3,6 +3,7 @@
 
 ### List of classes:
 * [API](jarvis/API.html)
+* [NLU](jarvis/NLU.html)
 * [MQTT](jarvis/MQTT.html)
 * [Connection](jarvis/Connection.html)
 * [Colors](jarvis/Colors.html)
