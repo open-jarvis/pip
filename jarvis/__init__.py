@@ -18,7 +18,6 @@
 """
 
 from .API import *
-from .MQTT import *
 from .Connection import *
 from .Colors import *
 from .Config import *

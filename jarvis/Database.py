@@ -6,20 +6,6 @@ import types
 import couchdb2
 import requests
 import traceback
-import time
-from functools import wraps
-
-
-def benchmark(func):
-    @wraps(func)
-    def wrap(*args, **kwargs):
-        start = time.time()
-        res = func(*args, **kwargs)
-        end = time.time()
-        if end-start > 1:
-            print(f"Database::{func.__name__} took {end-start}s")
-        return res
-    return wrap
 
 
 class Database:
@@ -32,7 +18,7 @@ class Database:
     An exception or a list of exception which might occur while making operations with the Database
     """
 
-    def __init__(self, username: str = "jarvis", password: str = "jarvis", name: str = "jarvis", hostname: str = "127.0.0.1", port: int = 5984, exit_on_fail=True) -> None:
+    def __init__(self, username: str = "admin", password: str = "jarvis", name: str = "jarvis", hostname: str = "127.0.0.1", port: int = 5984, exit_on_fail=True) -> None:
         """
         Creates a Database connection with the following arguments:
         * `username` specifies the database username
@@ -50,11 +36,12 @@ class Database:
 
         try:
             self.server = couchdb2.Server(f"http://{self.host}:{self.port}/", username=self.user, password=password)
-        except Database.Exception:
-            from jarvis.Logger import Logger
-            Logger.e1("Database", "Refused", "Connection refused, database not running", traceback.format_exc(), database_entry=False)
+        except Database.Exception as e:
             if exit_on_fail:
-                exit(1)
+                from jarvis.Logger import Logger
+                Logger.e1("Database", "Exception", "Database is not reachable. Critical error, exiting", traceback.format_exc())
+                exit()
+            raise e
 
     def table(self, table_name: str, pure: bool = False):
         """
@@ -88,6 +75,13 @@ class Database:
         except Database.Exception:
             return False
 
+    @staticmethod
+    def reachable():
+        try:
+            return Database(exit_on_fail=False).up
+        except Database.Exception:
+            return False
+
     def __str__(self) -> str:
         """Return string representation of the Database"""
         if not hasattr(self, "name"):
@@ -111,12 +105,10 @@ class Table:
         else:
             self.table = self.server.create(self.name)
 
-    @benchmark
     def get(self, id: str) -> dict:
         """Get a document from the current table by `id`"""
         return self.table.get(id)
 
-    @benchmark
     def all(self) -> list:
         """Return all documents from the current table"""
         all_list = DocumentList(self)
@@ -124,7 +116,6 @@ class Table:
             all_list.add(dict(doc))
         return all_list
 
-    @benchmark
     def insert(self, document: dict) -> any:
         """Insert a document in the current table"""
         try:
@@ -133,7 +124,6 @@ class Table:
         except Database.Exception:
             return False
 
-    @benchmark
     def filter(self, filter: any = {}) -> list:
         """THE USE OF THIS FUNCTION IS DISCOURAGED! USE FIND INSTEAD!
         Filters a table  
@@ -153,19 +143,16 @@ class Table:
                         doc_list.add(document)
         return doc_list
 
-    @benchmark
     def find(self, filter: dict = {}) -> list:
         """Find documents by a <a href="https://pouchdb.com/guides/mango-queries.html">Mango query</a>"""
         doc_list = DocumentList(self)
         doc_list.document_list = self.table.find(filter)["docs"]
         return doc_list
 
-    @benchmark
     def delete(self, document):
         """Delete a document from the table"""
         self.table.purge([document])
 
-    @benchmark
     def drop(self):
         """Drop the current table"""
         return self.table.destroy()

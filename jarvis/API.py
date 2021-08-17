@@ -10,7 +10,6 @@ import time
 import inspect
 import traceback
 from collections import OrderedDict
-from jarvis.MQTT import MQTT
 from jarvis.Logger import Logger
 
 
@@ -60,7 +59,8 @@ class API():
     def _get(route: str):
         """Get routes from array, else return the default route"""
         for subscription in API.routes:
-            if MQTT.match(subscription, route):
+            if subscription == route: # TODO: just a temporary solution, no regex in routing is allowed
+            # if MQTT.match(subscription, route):
                 reg = subscription.replace("+", "([^/]+)").replace("#", "([^ ]+)")
                 res = re.search(reg, route)
                 if res:
