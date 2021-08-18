@@ -15,6 +15,7 @@
 * [ThreadPool](jarvis/ThreadPool.html)
 * [Logger](jarvis/Logger.html)
 * [Database](jarvis/Database.html)
+* [User](jarvis/User.html)
 """
 
 from .API import *
@@ -28,6 +29,7 @@ from .Security import *
 from .ThreadPool import *
 from .Logger import *
 from .Database import *
+from .User import *
 
 def update():
     try:
