@@ -64,19 +64,32 @@ class API():
                 reg = subscription.replace("+", "([^/]+)").replace("#", "([^ ]+)")
                 res = re.search(reg, route)
                 if res:
-                    return (API.routes[subscription], list(res.groups()))
+                    return { "fn": API.routes[subscription], 
+                             "args": list(res.groups())  }
                 else:
-                    return (API.routes[subscription], [])
-        return (API.default_route, [])
+                    return { "fn": API.routes[subscription], 
+                             "args": []  }
+        return { "fn": {
+                    "fn": API.default_route,
+                    "kwargs": {}}, 
+                 "args": []  }
 
     @staticmethod
-    def execute(route: str, *args, **kwargs) -> set:
+    def execute(route: str, *args, requirements={}, **kwargs) -> set:
         """Execute a route with given arguments  
         Returns a tuple with `(True|False, object result)`"""
         start = time.time()
         try:
             endpoint = API._get(route)
-            res = endpoint[0](endpoint[1], *args, **kwargs)
+            execute = True
+            for key, value in requirements.items():
+                if key not in endpoint["fn"]["args"] or endpoint["fn"]["args"][key] != value:
+                    execute = False
+            res = None
+            if execute:
+                res = endpoint["fn"]["fn"](endpoint["args"], *args, **kwargs)
+            else:
+                return (None, None)
             # logger.d("Timing", f"Executing route '{route}' took {time.time()-start :.2f}s")
             if isinstance(res, bool):
                 return (res, None)
@@ -92,7 +105,7 @@ class API():
         raise Exception("Endpoint not found")
 
     @staticmethod
-    def route(path):
+    def route(path, **kwargs):
         """Decorator to register a route  
         [See usage](#API)"""
         def decor(func):
@@ -101,7 +114,10 @@ class API():
             def wrap(*args, **kwargs):
                 res = func(*args, **kwargs)
                 return res
-            API.routes[path] = wrap
+            API.routes[path] = {
+                "fn": wrap,
+                "kwargs": kwargs
+            }
             return wrap
         return decor
 
