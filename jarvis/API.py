@@ -59,10 +59,11 @@ class API():
     def _get(route: str):
         """Get routes from array, else return the default route"""
         for subscription in API.routes:
-            if subscription == route: # TODO: just a temporary solution, no regex in routing is allowed
-            # if MQTT.match(subscription, route):
-                reg = subscription.replace("+", "([^/]+)").replace("#", "([^ ]+)")
-                res = re.search(reg, route)
+            reg = subscription.replace("+", "([^/]+)").replace("#", "([^ ]+)")
+            res = re.search(reg, route)
+            if re.match(reg, route):
+                # if subscription == route: # TODO: just a temporary solution, no regex in routing is allowed
+                # if MQTT.match(subscription, route):
                 if res:
                     return { "fn": API.routes[subscription], 
                              "args": list(res.groups())  }
@@ -75,21 +76,13 @@ class API():
                  "args": []  }
 
     @staticmethod
-    def execute(route: str, *args, requirements={}, **kwargs) -> set:
+    def execute(route: str, *args, **kwargs) -> set:
         """Execute a route with given arguments  
         Returns a tuple with `(True|False, object result)`"""
         start = time.time()
         try:
             endpoint = API._get(route)
-            execute = True
-            for key, value in requirements.items():
-                if key not in endpoint["fn"]["args"] or endpoint["fn"]["args"][key] != value:
-                    execute = False
-            res = None
-            if execute:
-                res = endpoint["fn"]["fn"](endpoint["args"], *args, **kwargs)
-            else:
-                return (None, None)
+            res = endpoint["fn"]["fn"](endpoint["args"], *args, **kwargs)
             # logger.d("Timing", f"Executing route '{route}' took {time.time()-start :.2f}s")
             if isinstance(res, bool):
                 return (res, None)
