@@ -19,6 +19,7 @@ class Database:
     """
 
     def __init__(self, username: str = "admin", password: str = "jarvis", name: str = "jarvis", hostname: str = "127.0.0.1", port: int = 5984, exit_on_fail=True) -> None:
+    # def __init__(self, username: str = "admin", password: str = "jarvis", name: str = "jarvis", hostname: str = "jarvis.fipsi.at", port: int = 5984, exit_on_fail=True) -> None:
         """
         Creates a Database connection with the following arguments:
         * `username` specifies the database username

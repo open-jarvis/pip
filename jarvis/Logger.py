@@ -82,7 +82,7 @@ class Logger:
             return
 
         if to_console:
-            print("{} - {}/{} - {}".format(str(datetime.now()), pre, referrer + (" " * (12-len(referrer))), message))
+            print("{} {}/{}{} - {}".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), pre, referrer + (" " * (12-len(referrer))), tag + (" " * (10-len(tag))), message))
 
         return
         if database_entry:

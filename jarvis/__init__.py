@@ -19,12 +19,8 @@
 """
 
 from .API import *
-from .Connection import *
-from .Colors import *
 from .Config import *
-from .SetupTools import *
 from .Exiter import *
-from .Mime import *
 from .Security import *
 from .ThreadPool import *
 from .Logger import *

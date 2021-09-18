@@ -3,6 +3,7 @@ Copyright (c) 2021 Philipp Scheer
 """
 
 
+import asyncio
 from threading import Thread
 
 
@@ -55,4 +56,13 @@ class ThreadPool:
         if include_children:
             return ThreadPool._all_threads
         return self._threads
-        
+
+    @staticmethod
+    def background(coroutine, *args):
+        def _handle(loop, *args):
+            # asyncio.run_coroutine_threadsafe(coroutine(), loop)
+            # loop.run_until_complete(coroutine()) # ValueError: The future belongs to a different loop than the one specified as the loop argument
+            asyncio.run(coroutine(*args))
+        loop = asyncio.new_event_loop()
+        t = Thread(target=_handle, args=[loop] + list(args))
+        t.start()
