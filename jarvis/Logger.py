@@ -49,8 +49,8 @@ class Logger:
 
     def e(self, tag: str, message: str, exception_str: str, to_db: bool = True):
         """Log an `error` message"""
-        print(exception_str)
         Logger.log(self.referrer, "E", tag, message, to_console=self.to_console, exception_str=exception_str, database_entry=to_db)
+        print(exception_str)
 
     def w(self, tag: str, message: str, to_db: bool = True):
         """Log a `warning` message"""
@@ -114,8 +114,8 @@ class Logger:
     @staticmethod
     def e1(referrer: str, tag: str, message: object, exception_str: str, database_entry: bool = True):
         """Create a one-time error log message"""
-        print(exception_str)
         Logger.log(referrer, "E", tag, message, exception_str=exception_str, to_console=True, database_entry=database_entry)
+        print(exception_str)
 
     @staticmethod
     def w1(referrer: str, tag: str, message: object, database_entry: bool = True):

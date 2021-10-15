@@ -60,8 +60,6 @@ class ThreadPool:
     @staticmethod
     def background(coroutine, *args):
         def _handle(loop, *args):
-            # asyncio.run_coroutine_threadsafe(coroutine(), loop)
-            # loop.run_until_complete(coroutine()) # ValueError: The future belongs to a different loop than the one specified as the loop argument
             asyncio.run(coroutine(*args))
         loop = asyncio.new_event_loop()
         t = Thread(target=_handle, args=[loop] + list(args))
