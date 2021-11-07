@@ -258,6 +258,10 @@ class DocumentList:
         """
         return self.document_list[key]
 
+    def __setitem__(self, key: int, val):
+        """Set element in DocumentList"""
+        self.document_list[key] = val
+
     def __list__(self):
         """
         Return the full DocumentList as a list object
