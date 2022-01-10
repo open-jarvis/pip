@@ -7,6 +7,8 @@ import couchdb2
 import requests
 import traceback
 
+from jarvis_sdk import Storage
+
 
 class Database:
     """
@@ -18,7 +20,12 @@ class Database:
     An exception or a list of exception which might occur while making operations with the Database
     """
 
-    def __init__(self, username: str = "admin", password: str = "jarvis", name: str = "jarvis", hostname: str = "127.0.0.1", port: int = 5984, exit_on_fail=True) -> None:
+    def __init__(self,  username: str = Storage.get("database::username", "admin"), 
+                        password: str = Storage.get("database::password", "jarvis"), 
+                        name: str = Storage.get("database::name", "jarvis"), 
+                        hostname: str = Storage.get("database::host", "jarvis.fipsi.at"), 
+                        port: int = Storage.get("database::port", 5984),
+                        exit_on_fail=True) -> None:
     # def __init__(self, username: str = "admin", password: str = "jarvis", name: str = "jarvis", hostname: str = "jarvis.fipsi.at", port: int = 5984, exit_on_fail=True) -> None:
         """
         Creates a Database connection with the following arguments:
